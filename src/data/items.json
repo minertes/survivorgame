@@ -1,0 +1,224 @@
+{
+	"health_pack_small": {
+		"name": "Small Health Pack",
+		"description": "Restores a small amount of health.",
+		"type": "consumable",
+		"rarity": "common",
+		"heal_amount": 25.0,
+		"duration": 0.0,
+		"max_stack": 5,
+		"spawn_weight": 25,
+		"icon": "item_health_small",
+		"sound": "health_pickup"
+	},
+	
+	"health_pack_medium": {
+		"name": "Medium Health Pack",
+		"description": "Restores a moderate amount of health.",
+		"type": "consumable",
+		"rarity": "uncommon",
+		"heal_amount": 50.0,
+		"duration": 0.0,
+		"max_stack": 3,
+		"spawn_weight": 15,
+		"icon": "item_health_medium",
+		"sound": "health_pickup"
+	},
+	
+	"health_pack_large": {
+		"name": "Large Health Pack",
+		"description": "Restores a large amount of health.",
+		"type": "consumable",
+		"rarity": "rare",
+		"heal_amount": 100.0,
+		"duration": 0.0,
+		"max_stack": 1,
+		"spawn_weight": 5,
+		"icon": "item_health_large",
+		"sound": "health_pickup"
+	},
+	
+	"speed_boost": {
+		"name": "Speed Boost",
+		"description": "Temporarily increases movement speed.",
+		"type": "buff",
+		"rarity": "uncommon",
+		"speed_multiplier": 1.5,
+		"duration": 10.0,
+		"max_stack": 1,
+		"spawn_weight": 10,
+		"icon": "item_speed_boost",
+		"sound": "buff_pickup"
+	},
+	
+	"damage_boost": {
+		"name": "Damage Boost",
+		"description": "Temporarily increases damage output.",
+		"type": "buff",
+		"rarity": "uncommon",
+		"damage_multiplier": 1.5,
+		"duration": 15.0,
+		"max_stack": 1,
+		"spawn_weight": 10,
+		"icon": "item_damage_boost",
+		"sound": "buff_pickup"
+	},
+	
+	"invincibility": {
+		"name": "Invincibility",
+		"description": "Temporarily makes you invulnerable.",
+		"type": "buff",
+		"rarity": "rare",
+		"duration": 5.0,
+		"max_stack": 1,
+		"spawn_weight": 3,
+		"icon": "item_invincibility",
+		"sound": "buff_pickup"
+	},
+	
+	"coin_small": {
+		"name": "Small Coin Pouch",
+		"description": "A small amount of currency.",
+		"type": "currency",
+		"rarity": "common",
+		"coin_amount": 10,
+		"max_stack": 99,
+		"spawn_weight": 40,
+		"icon": "item_coin_small",
+		"sound": "coin_pickup"
+	},
+	
+	"coin_medium": {
+		"name": "Medium Coin Pouch",
+		"description": "A moderate amount of currency.",
+		"type": "currency",
+		"rarity": "uncommon",
+		"coin_amount": 25,
+		"max_stack": 99,
+		"spawn_weight": 20,
+		"icon": "item_coin_medium",
+		"sound": "coin_pickup"
+	},
+	
+	"coin_large": {
+		"name": "Large Coin Pouch",
+		"description": "A large amount of currency.",
+		"type": "currency",
+		"rarity": "rare",
+		"coin_amount": 100,
+		"max_stack": 99,
+		"spawn_weight": 5,
+		"icon": "item_coin_large",
+		"sound": "coin_pickup"
+	},
+	
+	"experience_gem_small": {
+		"name": "Small Experience Gem",
+		"description": "Grants a small amount of experience.",
+		"type": "experience",
+		"rarity": "common",
+		"experience_amount": 10,
+		"max_stack": 99,
+		"spawn_weight": 30,
+		"icon": "item_xp_small",
+		"sound": "xp_pickup"
+	},
+	
+	"experience_gem_medium": {
+		"name": "Medium Experience Gem",
+		"description": "Grants a moderate amount of experience.",
+		"type": "experience",
+		"rarity": "uncommon",
+		"experience_amount": 25,
+		"max_stack": 99,
+		"spawn_weight": 15,
+		"icon": "item_xp_medium",
+		"sound": "xp_pickup"
+	},
+	
+	"experience_gem_large": {
+		"name": "Large Experience Gem",
+		"description": "Grants a large amount of experience.",
+		"type": "experience",
+		"rarity": "rare",
+		"experience_amount": 100,
+		"max_stack": 99,
+		"spawn_weight": 5,
+		"icon": "item_xp_large",
+		"sound": "xp_pickup"
+	},
+	
+	"weapon_upgrade": {
+		"name": "Weapon Upgrade Kit",
+		"description": "Upgrades your current weapon.",
+		"type": "upgrade",
+		"rarity": "rare",
+		"upgrade_type": "weapon",
+		"max_stack": 3,
+		"spawn_weight": 8,
+		"icon": "item_upgrade_kit",
+		"sound": "upgrade_pickup"
+	},
+	
+	"ammo_pack": {
+		"name": "Ammo Pack",
+		"description": "Refills all weapon ammunition.",
+		"type": "consumable",
+		"rarity": "uncommon",
+		"refill_percentage": 100.0,
+		"max_stack": 2,
+		"spawn_weight": 12,
+		"icon": "item_ammo_pack",
+		"sound": "ammo_pickup"
+	},
+	
+	"key": {
+		"name": "Mysterious Key",
+		"description": "Unlocks special areas or chests.",
+		"type": "key",
+		"rarity": "epic",
+		"max_stack": 1,
+		"spawn_weight": 1,
+		"icon": "item_key",
+		"sound": "key_pickup"
+	},
+	
+	"loot_box_common": {
+		"name": "Common Loot Box",
+		"description": "Contains common items.",
+		"type": "loot_box",
+		"rarity": "common",
+		"loot_quality": "common",
+		"item_count": 3,
+		"max_stack": 5,
+		"spawn_weight": 10,
+		"icon": "item_lootbox_common",
+		"sound": "lootbox_pickup"
+	},
+	
+	"loot_box_rare": {
+		"name": "Rare Loot Box",
+		"description": "Contains rare items.",
+		"type": "loot_box",
+		"rarity": "rare",
+		"loot_quality": "rare",
+		"item_count": 2,
+		"max_stack": 3,
+		"spawn_weight": 3,
+		"icon": "item_lootbox_rare",
+		"sound": "lootbox_pickup"
+	},
+	
+	"loot_box_epic": {
+		"name": "Epic Loot Box",
+		"description": "Contains epic items.",
+		"type": "loot_box",
+		"rarity": "epic",
+		"loot_quality": "epic",
+		"item_count": 1,
+		"max_stack": 1,
+		"spawn_weight": 1,
+		"icon": "item_lootbox_epic",
+		"sound": "lootbox_pickup"
+	}
+}

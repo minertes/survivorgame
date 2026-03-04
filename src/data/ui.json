@@ -1,0 +1,214 @@
+{
+	"ui": {
+		"colors": {
+			"primary": "#4CAF50",
+			"secondary": "#2196F3",
+			"danger": "#F44336",
+			"warning": "#FF9800",
+			"success": "#4CAF50",
+			"dark": "#333333",
+			"light": "#F5F5F5"
+		},
+		"fonts": {
+			"default_size": 16,
+			"title_size": 24,
+			"small_size": 12
+		},
+		"animations": {
+			"button_hover_duration": 0.1,
+			"button_press_duration": 0.05,
+			"fade_duration": 0.3,
+			"slide_duration": 0.2
+		}
+	},
+	"atoms": {
+		"button": {
+			"default": {
+				"min_size": "80,40",
+				"font_size": 16,
+				"corner_radius": 8,
+				"padding": "10,5"
+			},
+			"primary": {
+				"background_color": "#4CAF50",
+				"text_color": "#FFFFFF",
+				"hover_color": "#45A049",
+				"pressed_color": "#3D8B40"
+			},
+			"secondary": {
+				"background_color": "#2196F3",
+				"text_color": "#FFFFFF",
+				"hover_color": "#1E88E5",
+				"pressed_color": "#1976D2"
+			},
+			"danger": {
+				"background_color": "#F44336",
+				"text_color": "#FFFFFF",
+				"hover_color": "#E53935",
+				"pressed_color": "#D32F2F"
+			}
+		},
+		"label": {
+			"default": {
+				"font_size": 16,
+				"color": "#FFFFFF",
+				"shadow": true,
+				"shadow_color": "#000000",
+				"shadow_offset": "1,1"
+			},
+			"title": {
+				"font_size": 24,
+				"color": "#FFFFFF",
+				"bold": true
+			},
+			"subtitle": {
+				"font_size": 18,
+				"color": "#CCCCCC"
+			},
+			"small": {
+				"font_size": 12,
+				"color": "#AAAAAA"
+			}
+		},
+		"progress_bar": {
+			"default": {
+				"min_size": "200,20",
+				"background_color": "#333333",
+				"fill_color": "#4CAF50",
+				"border_color": "#555555",
+				"border_width": 2,
+				"corner_radius": 4
+			},
+			"health": {
+				"fill_color": "#F44336",
+				"background_color": "#222222"
+			},
+			"experience": {
+				"fill_color": "#2196F3",
+				"background_color": "#222222"
+			},
+			"mana": {
+				"fill_color": "#9C27B0",
+				"background_color": "#222222"
+			}
+		},
+		"panel": {
+			"default": {
+				"background_color": "#1A1A1A",
+				"border_color": "#333333",
+				"border_width": 2,
+				"corner_radius": 8,
+				"padding": "10"
+			},
+			"transparent": {
+				"background_color": "#00000000",
+				"border_color": "#00000000"
+			},
+			"highlight": {
+				"background_color": "#2A2A2A",
+				"border_color": "#4CAF50"
+			}
+		}
+	},
+	"molecules": {
+		"health_bar": {
+			"show_label": true,
+			"show_icon": true,
+			"icon_path": "res://assets/ui/icons/health.png",
+			"label_format": "{current}/{max}",
+			"update_interval": 0.1
+		},
+		"weapon_card": {
+			"show_name": true,
+			"show_stats": true,
+			"show_icon": true,
+			"icon_size": "64,64",
+			"stat_labels": ["Damage", "Fire Rate", "Range"]
+		},
+		"inventory_slot": {
+			"slot_size": "80,80",
+			"icon_size": "64,64",
+			"show_count": true,
+			"show_rarity_border": true,
+			"rarity_colors": {
+				"common": "#808080",
+				"uncommon": "#4CAF50",
+				"rare": "#2196F3",
+				"epic": "#9C27B0",
+				"legendary": "#FF9800"
+			}
+		}
+	},
+	"screens": {
+		"main_menu": {
+			"title": "SURVIVOR GAME",
+			"logo_path": "res://assets/ui/icons/logo.png",
+			"background_color": "#1A1A1A",
+			"show_title": true,
+			"show_logo": true,
+			"show_background": true,
+			"show_buttons": true,
+			"fade_duration": 0.3,
+			"buttons": {
+				"start": {
+					"text": "START GAME",
+					"style": "primary",
+					"enabled": true
+				},
+				"settings": {
+					"text": "SETTINGS",
+					"style": "secondary",
+					"enabled": true
+				},
+				"quit": {
+					"text": "QUIT",
+					"style": "danger",
+					"enabled": true
+				}
+			}
+		},
+		"game_hud": {
+			"show_health_bar": true,
+			"show_xp_bar": true,
+			"show_weapon_info": true,
+			"show_inventory": true,
+			"show_minimap": true,
+			"update_interval": 0.1
+		},
+		"upgrade_screen": {
+			"title": "UPGRADES",
+			"background_color": "#1A1A1A",
+			"show_title": true,
+			"show_stats": true,
+			"show_weapons": true,
+			"show_background": true,
+			"fade_duration": 0.3,
+			"upgrade_button_text": "UPGRADE",
+			"upgrade_button_style": "primary",
+			"back_button_text": "BACK",
+			"back_button_style": "secondary",
+			"stat_labels": ["Damage", "Fire Rate", "Range", "Reload Speed"],
+			"cost_multiplier": 1.5,
+			"max_upgrade_level": 10
+		},
+		"settings_screen": {
+			"title": "SETTINGS",
+			"background_color": "#1A1A1A",
+			"show_title": true,
+			"show_sections": true,
+			"show_background": true,
+			"fade_duration": 0.3,
+			"sections": ["audio", "graphics", "controls", "gameplay"],
+			"default_volume": 80,
+			"default_quality": "medium",
+			"available_resolutions": ["1920x1080", "1600x900", "1366x768", "1280x720"],
+			"keybind_presets": ["default", "wasd", "arrow_keys"],
+			"save_button_text": "SAVE SETTINGS",
+			"save_button_style": "primary",
+			"reset_button_text": "RESET TO DEFAULTS",
+			"reset_button_style": "secondary",
+			"back_button_text": "BACK",
+			"back_button_style": "secondary"
+		}
+	}
+}

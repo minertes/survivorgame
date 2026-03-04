@@ -1,0 +1,28 @@
+# Godot 4 specific ignores
+.godot/
+*.translation
+
+# Import cache
+.import/
+
+# Mono/C# specific
+.mono/
+data_*/
+mono_crash.*.json
+
+# Editor settings
+*.tmp
+*.bak
+*.swp
+
+# Executables
+*.exe
+*.pck
+*.zip
+
+# Compressed files
+*.rar
+
+# OS generated files
+.DS_Store
+Thumbs.db

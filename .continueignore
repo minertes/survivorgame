@@ -1,0 +1,200 @@
+# 🎮 SURVIVOR GAME - CONTINUE IGNORE FILE
+# Bu dosya Continue AI asistanının hangi dosyaları index'lemeyeceğini belirler
+
+# ========================
+# 🏗️ BUILD & OUTPUT FILES
+# ========================
+# Godot build outputs
+*.import
+export_presets.cfg
+export_templates/
+
+# Binary/compiled files
+*.exe
+*.dll
+*.so
+*.dylib
+*.apk
+*.aab
+*.ipa
+*.app
+
+# Platform-specific
+*.pck
+*.zip
+*.7z
+
+# ========================
+# 🗄️ DATABASE & STORAGE
+# ========================
+# Game save files
+user://
+*.save
+*.sav
+*.cfg
+*.json.save
+
+# Cache files
+.cache/
+*.tmp
+*.temp
+*.cache
+
+# ========================
+# 📁 ASSET PROCESSING
+# ========================
+# Godot import files (can be regenerated)
+*.import
+*.md5
+
+# Large media files (index'e girmesin)
+*.mp3
+*.wav
+*.ogg
+*.mp4
+*.webm
+*.avi
+
+# Texture compression files
+*.ctex
+*.stex
+
+# ========================
+# 🔧 DEVELOPMENT TOOLS
+# ========================
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Version control
+.git/
+.svn/
+.hg/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# 🧪 TEST & DEBUG
+# ========================
+# Test files
+test/
+tests/
+*.test.gd
+*.test.tscn
+
+# Log files
+*.log
+debug.log
+crash.log
+
+# Profiling data
+*.prof
+*.profile
+
+# ========================
+# 🎨 TEMPORARY/ARTIFACT
+# ========================
+# Temporary files
+tmp/
+temp/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# ========================
+# 📊 ANALYTICS & MONITORING
+# ========================
+# Analytics data (can be large)
+analytics/
+events/
+*.analytics.json
+
+# ========================
+# 🚫 EXCEPTIONS (INDEX'E ALINSIN)
+# ========================
+# Bu dosyalar index'e alınsın:
+!project.godot
+!*.gd
+!*.tscn
+!*.json
+!*.txt
+!*.md
+!SURVIVOR_GAME_100M_PLAN.md
+
+# Config dosyaları (index'e alınsın)
+!config/
+!*.cfg
+!*.json
+
+# ========================
+# 📁 SPECIFIC EXCLUSIONS
+# ========================
+# Third-party/addons (büyük olabilir)
+addons/
+# ama addon script'leri index'e alınsın
+!addons/*.gd
+!addons/*.json
+
+# Build artifacts
+builds/
+release/
+dist/
+
+# Documentation (büyük PDF'ler vs)
+docs/*.pdf
+docs/*.epub
+
+# ========================
+# 🎯 GAME SPECIFIC
+# ========================
+# Generated shaders
+*.gdshader
+*.gdshaderinc
+
+# Scene instance files
+*.scn
+
+# ========================
+# 🤖 AI/ASSISTANT FILES
+# ========================
+# AI assistant working directories
+.claude/
+.cursor/
+.continue/
+.agent/
+
+# Session files
+*.session
+*.chat
+
+# ========================
+# 📦 DEPENDENCIES
+# ========================
+# Package managers
+node_modules/
+vendor/
+packages/
+
+# ========================
+# 🔐 SECURITY SENSITIVE
+# ========================
+# API keys, secrets
+*.env
+*.secret
+*.key
+*.pem
+*.crt
+
+# ========================
+# 🎮 SON NOT
+# ========================
+# Bu dosya survivor game projesi için optimize edilmiştir
+# Godot 4.x ve profesyonel game development workflow'u için

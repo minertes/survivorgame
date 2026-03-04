@@ -1,0 +1,401 @@
+{
+  "weapons": {
+    "sword": {
+      "id": "sword",
+      "name": "Kılıç",
+      "description": "Yakın dövüş. Geniş menzil.",
+      "icon": "⚔️",
+      "damage": 35,
+      "fire_rate": 0.65,
+      "projectile_speed": 0,
+      "range": 90,
+      "element": "neutral",
+      "rarity": "common",
+      "evolution": {
+        "level_2": {
+          "required_item": "empty_tome",
+          "evolves_to": "great_sword",
+          "description": "Daha geniş menzil ve hasar"
+        },
+        "level_3": {
+          "required_item": "spinach",
+          "evolves_to": "dragon_slayer",
+          "description": "Ateş elementli dev kılıç"
+        }
+      }
+    },
+    
+    "bow": {
+      "id": "bow",
+      "name": "Yay",
+      "description": "Uzak mesafe ok atar.",
+      "icon": "🏹",
+      "damage": 25,
+      "fire_rate": 0.55,
+      "projectile_speed": 500,
+      "range": 400,
+      "element": "neutral",
+      "rarity": "common",
+      "evolution": {
+        "level_2": {
+          "required_item": "bracer",
+          "evolves_to": "crossbow",
+          "description": "Daha hızlı ve güçlü"
+        },
+        "level_3": {
+          "required_item": "clover",
+          "evolves_to": "artemis_bow",
+          "description": "3 ok birden atar"
+        }
+      }
+    },
+    
+    "pistol": {
+      "id": "pistol",
+      "name": "Tabanca",
+      "description": "Dengeli mermi.",
+      "icon": "🔫",
+      "damage": 20,
+      "fire_rate": 0.5,
+      "projectile_speed": 600,
+      "range": 350,
+      "element": "neutral",
+      "rarity": "common",
+      "evolution": {
+        "level_2": {
+          "required_item": "empty_tome",
+          "evolves_to": "dual_pistols",
+          "description": "Çift tabanca"
+        },
+        "level_3": {
+          "required_item": "bracer",
+          "evolves_to": "triple_pistols",
+          "description": "Üçlü tabanca"
+        }
+      }
+    },
+    
+    "shotgun": {
+      "id": "shotgun",
+      "name": "Pompalı Tüfek",
+      "description": "5 pellet, kısa menzil.",
+      "icon": "💣",
+      "damage": 15,
+      "fire_rate": 1.1,
+      "projectile_speed": 400,
+      "range": 150,
+      "pellet_count": 5,
+      "spread_angle": 30,
+      "element": "neutral",
+      "rarity": "uncommon",
+      "evolution": {
+        "level_2": {
+          "required_item": "attractorb",
+          "evolves_to": "double_barrel",
+          "description": "8 pellet, daha geniş yayılma"
+        },
+        "level_3": {
+          "required_item": "candelabrador",
+          "evolves_to": "hellfire_shotgun",
+          "description": "Ateş elementli 12 pellet"
+        }
+      }
+    },
+    
+    "machinegun": {
+      "id": "machinegun",
+      "name": "Makineli Tüfek",
+      "description": "Sürekli ateş, düşük hasar.",
+      "icon": "⚡",
+      "damage": 8,
+      "fire_rate": 0.1,
+      "projectile_speed": 700,
+      "range": 300,
+      "element": "neutral",
+      "rarity": "uncommon",
+      "evolution": {
+        "level_2": {
+          "required_item": "empty_tome",
+          "evolves_to": "minigun",
+          "description": "Daha hızlı ateş"
+        },
+        "level_3": {
+          "required_item": "spinach",
+          "evolves_to": "gatling_gun",
+          "description": "360 derece dönen gatling"
+        }
+      }
+    },
+    
+    "magic": {
+      "id": "magic",
+      "name": "Sihir",
+      "description": "360° mermi fırlatır.",
+      "icon": "✨",
+      "damage": 12,
+      "fire_rate": 1.8,
+      "projectile_speed": 300,
+      "range": 200,
+      "projectile_count": 6,
+      "element": "arcane",
+      "rarity": "rare",
+      "evolution": {
+        "level_2": {
+          "required_item": "spellbinder",
+          "evolves_to": "arcane_circle",
+          "description": "8 mermi, daha hızlı"
+        },
+        "level_3": {
+          "required_item": "crown",
+          "evolves_to": "archmage_staff",
+          "description": "12 mermi, takip eden"
+        }
+      }
+    },
+    
+    "sniper": {
+      "id": "sniper",
+      "name": "Keskin Nişancı",
+      "description": "4× hasar, yavaş ateş.",
+      "icon": "🎯",
+      "damage": 100,
+      "fire_rate": 2.4,
+      "projectile_speed": 1000,
+      "range": 500,
+      "element": "neutral",
+      "rarity": "rare",
+      "evolution": {
+        "level_2": {
+          "required_item": "clover",
+          "evolves_to": "anti_material",
+          "description": "Düşmanları delip geçer"
+        },
+        "level_3": {
+          "required_item": "spinach",
+          "evolves_to": "railgun",
+          "description": "Elektrik elementli railgun"
+        }
+      }
+    },
+    
+    "fire_wand": {
+      "id": "fire_wand",
+      "name": "Ateş Asası",
+      "description": "Ateş topu fırlatır, yanma efekti.",
+      "icon": "🔥",
+      "damage": 18,
+      "fire_rate": 0.8,
+      "projectile_speed": 350,
+      "range": 250,
+      "element": "fire",
+      "burn_duration": 3,
+      "burn_damage": 5,
+      "rarity": "uncommon",
+      "evolution": {
+        "level_2": {
+          "required_item": "candelabrador",
+          "evolves_to": "inferno_staff",
+          "description": "3 ateş topu, daha uzun yanma"
+        }
+      }
+    },
+    
+    "ice_shard": {
+      "id": "ice_shard",
+      "name": "Buz Kılıcı",
+      "description": "Buz mermileri, yavaşlatma efekti.",
+      "icon": "❄️",
+      "damage": 15,
+      "fire_rate": 0.7,
+      "projectile_speed": 300,
+      "range": 200,
+      "element": "water",
+      "slow_duration": 2,
+      "slow_amount": 0.5,
+      "rarity": "uncommon",
+      "evolution": {
+        "level_2": {
+          "required_item": "spellbinder",
+          "evolves_to": "blizzard_blade",
+          "description": "360 derece buz mermileri"
+        }
+      }
+    },
+    
+    "earth_hammer": {
+      "id": "earth_hammer",
+      "name": "Toprak Çekici",
+      "description": "Sarsıntı dalgası, knockback.",
+      "icon": "⛰️",
+      "damage": 40,
+      "fire_rate": 1.2,
+      "projectile_speed": 0,
+      "range": 120,
+      "element": "earth",
+      "knockback_force": 200,
+      "rarity": "uncommon",
+      "evolution": {
+        "level_2": {
+          "required_item": "armor",
+          "evolves_to": "quake_hammer",
+          "description": "Daha geniş alan, daha güçlü knockback"
+        }
+      }
+    },
+    
+    "wind_blade": {
+      "id": "wind_blade",
+      "name": "Rüzgar Bıçağı",
+      "description": "Hızlı mermiler, çoklu hedef.",
+      "icon": "💨",
+      "damage": 10,
+      "fire_rate": 0.3,
+      "projectile_speed": 800,
+      "range": 300,
+      "element": "air",
+      "pierce_count": 3,
+      "rarity": "uncommon",
+      "evolution": {
+        "level_2": {
+          "required_item": "wings",
+          "evolves_to": "tornado_blade",
+          "description": "Dönen bıçaklar, daha fazla delme"
+        }
+      }
+    },
+    
+    "lightning_rod": {
+      "id": "lightning_rod",
+      "name": "Yıldırım Çubuğu",
+      "description": "Zincirleme yıldırım, çoklu hedef.",
+      "icon": "⚡",
+      "damage": 25,
+      "fire_rate": 1.5,
+      "projectile_speed": 9999,
+      "range": 350,
+      "element": "lightning",
+      "chain_count": 3,
+      "chain_range": 100,
+      "rarity": "rare",
+      "evolution": {
+        "level_2": {
+          "required_item": "crown",
+          "evolves_to": "thunder_god_rod",
+          "description": "5 zincir, daha uzun menzil"
+        }
+      }
+    },
+    
+    "poison_dagger": {
+      "id": "poison_dagger",
+      "name": "Zehir Hançeri",
+      "description": "Zehir efekti, sürekli hasar.",
+      "icon": "☠️",
+      "damage": 12,
+      "fire_rate": 0.6,
+      "projectile_speed": 400,
+      "range": 180,
+      "element": "poison",
+      "poison_duration": 4,
+      "poison_damage": 8,
+      "rarity": "rare",
+      "evolution": {
+        "level_2": {
+          "required_item": "spellbinder",
+          "evolves_to": "venom_blade",
+          "description": "Daha uzun zehir, alan etkisi"
+        }
+      }
+    },
+    
+    "holy_cross": {
+      "id": "holy_cross",
+      "name": "Kutsal Haç",
+      "description": "Işın atar, şeytanlara ekstra hasar.",
+      "icon": "✝️",
+      "damage": 30,
+      "fire_rate": 1.0,
+      "projectile_speed": 450,
+      "range": 280,
+      "element": "holy",
+      "demon_multiplier": 2.0,
+      "rarity": "epic",
+      "evolution": {
+        "level_2": {
+          "required_item": "crown",
+          "evolves_to": "archangel_cross",
+          "description": "3 ışın, daha geniş alan"
+        }
+      }
+    },
+    
+    "void_orb": {
+      "id": "void_orb",
+      "name": "Boşluk Küresi",
+      "description": "Kara delik efekti, düşmanları çeker.",
+      "icon": "🌌",
+      "damage": 20,
+      "fire_rate": 2.0,
+      "projectile_speed": 200,
+      "range": 150,
+      "element": "void",
+      "pull_force": 150,
+      "pull_duration": 3,
+      "rarity": "epic",
+      "evolution": {
+        "level_2": {
+          "required_item": "attractorb",
+          "evolves_to": "black_hole",
+          "description": "Daha güçlü çekim, daha büyük alan"
+        }
+      }
+    }
+  },
+  
+  "elemental_reactions": {
+    "fire_water": {
+      "name": "Buhar",
+      "description": "Yavaşlatma + Sürekli Hasar",
+      "effect": "slow_and_dot",
+      "slow_amount": 0.4,
+      "dot_damage": 10,
+      "duration": 3
+    },
+    "fire_earth": {
+      "name": "Lav",
+      "description": "Yerden Sürekli Hasar",
+      "effect": "ground_dot",
+      "damage": 15,
+      "duration": 4,
+      "area_radius": 80
+    },
+    "water_air": {
+      "name": "Buz",
+      "description": "Dondurma",
+      "effect": "freeze",
+      "duration": 2,
+      "damage_multiplier": 1.5
+    },
+    "earth_air": {
+      "name": "Kum Fırtınası",
+      "description": "Kör Etme",
+      "effect": "blind",
+      "duration": 3,
+      "accuracy_reduction": 0.7
+    },
+    "lightning_water": {
+      "name": "Elektro-Şok",
+      "description": "Zincirleme Hasar",
+      "effect": "chain_lightning",
+      "chain_count": 5,
+      "chain_range": 120
+    },
+    "fire_lightning": {
+      "name": "Plazma",
+      "description": "Patlama + Alan Hasarı",
+      "effect": "explosion",
+      "radius": 100,
+      "damage": 50
+    }
+  }
+}

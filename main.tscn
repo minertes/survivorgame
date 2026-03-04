@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://c14ygvdi6yhib"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://btory5g8g5s4p" path="res://player.tscn" id="2_player"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(0, 0)
+
+[node name="SpawnTimer" type="Timer" parent="."]
+wait_time = 1.0
+one_shot = false
+autostart = true
+
+[node name="WaveTimer" type="Timer" parent="."]
+wait_time = 30.0
+one_shot = false
+autostart = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="VBoxContainer" parent="UI"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 230.0
+offset_bottom = 180.0
+theme_override_constants/separation = 6
+
+[node name="WaveLabel" type="Label" parent="UI/HUD"]
+text = "Dalga 1"
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 0.2, 1)
+
+[node name="HealthLabel" type="Label" parent="UI/HUD"]
+text = "CAN"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+
+[node name="HealthBar" type="ProgressBar" parent="UI/HUD"]
+custom_minimum_size = Vector2(210, 22)
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="XPLabel" type="Label" parent="UI/HUD"]
+text = "DENEYİM"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+
+[node name="XPBar" type="ProgressBar" parent="UI/HUD"]
+custom_minimum_size = Vector2(210, 22)
+max_value = 100.0
+value = 0.0
+show_percentage = false
+
+[node name="LevelLabel" type="Label" parent="UI/HUD"]
+text = "Seviye 1"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)

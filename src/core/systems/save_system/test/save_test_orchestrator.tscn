@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://save_test_orchestrator"]
+
+[ext_resource type="Script" path="res://src/core/systems/save_system/test/save_test_orchestrator.gd" id="1"]
+
+[node name="SaveTestOrchestrator" type="Node"]
+script = ExtResource("1")
