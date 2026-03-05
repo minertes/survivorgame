@@ -227,9 +227,9 @@ func _create_layers() -> void:
 
 
 func _create_theme_selector(vs: Vector2) -> void:
-	# Mezarlık, Orman, Çöl, Cehennem (Background THEME_IDS ile uyumlu)
+	# Klasik, Orman, Çöl, Cehennem (Background THEME_IDS ile uyumlu)
 	var themes := [
-		["default", "Mezarlık"],
+		["default", "Klasik"],
 		["forest", "Orman"],
 		["desert", "Çöl"],
 		["hell", "Cehennem"]
