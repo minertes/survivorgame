@@ -31,7 +31,9 @@ func _physics_process(delta: float) -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		SoundManager.play_xp_collect()
+		var a = get_node_or_null("/root/AudioSystem")
+		if a and a.has_method("play_sound"):
+			a.play_sound("xp_collect")
 		body.gain_xp(xp_value)
 		queue_free()
 

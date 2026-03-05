@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://component_initializer_node"]
+
+[ext_resource type="Script" path="res://src/ui/molecules/core/lobby_component_initializer.gd" id="1_script"]
+
+[node name="ComponentInitializer" type="Node"]
+script = ExtResource("1_script")

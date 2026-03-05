@@ -2,7 +2,7 @@ extends Node2D
 
 const ENEMY_SCENE = preload("res://enemy.tscn")
 
-@onready var player: Node           = $Player
+@onready var player: CharacterBody2D = $Player
 @onready var health_bar: ProgressBar = $UI/HUD/HealthBar
 @onready var xp_bar: ProgressBar     = $UI/HUD/XPBar
 @onready var level_label: Label      = $UI/HUD/LevelLabel
@@ -19,6 +19,16 @@ var background: Background      = null
 var _kills_this_game := 0
 var _heart_labels: Array[Label] = []
 var _kill_label: Label = null
+var _pause_menu: Control = null  # ESC ile kapatmak için referans
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):  # ESC
+		if _pause_menu and is_instance_valid(_pause_menu):
+			_close_pause_menu()
+		else:
+			_open_pause_menu()
+		get_viewport().set_input_as_handled()
 
 
 func _ready() -> void:
@@ -253,57 +263,115 @@ func _setup_pause_button() -> void:
 	$UI.add_child(btn)
 
 
-func _on_pause_pressed() -> void:
+func _open_pause_menu() -> void:
+	if _pause_menu and is_instance_valid(_pause_menu):
+		return
+	var a = get_node_or_null("/root/AudioSystem")
+	if a and a.has_method("play_ui_sound"):
+		a.play_ui_sound("click")
 	get_tree().paused = true
 
 	var pause_root := Control.new()
-	pause_root.size         = viewport_size
+	pause_root.name = "PauseMenu"
+	pause_root.size = viewport_size
 	pause_root.process_mode = Node.PROCESS_MODE_ALWAYS
 	$UI.add_child(pause_root)
+	_pause_menu = pause_root
 
 	var overlay := ColorRect.new()
-	overlay.color = Color(0, 0, 0, 0.78)
-	overlay.size  = viewport_size
+	overlay.color = Color(0.06, 0.06, 0.12, 0.88)
+	overlay.size = viewport_size
 	pause_root.add_child(overlay)
 
+	var center := viewport_size / 2.0
 	var title := Label.new()
-	title.text = "⏸  DURAKLANDI"
-	title.add_theme_font_size_override("font_size", 54)
-	title.add_theme_color_override("font_color", Color.WHITE)
-	title.position = viewport_size / 2.0 - Vector2(180, 110)
+	title.text = "DURAKLATILDI"
+	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
+	title.position = center - Vector2(140, 140)
 	pause_root.add_child(title)
 
+	var hint := Label.new()
+	hint.text = "ESC — Menüyü kapat"
+	hint.add_theme_font_size_override("font_size", 14)
+	hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.75))
+	hint.position = center - Vector2(70, 100)
+	pause_root.add_child(hint)
+
+	var btn_w := 300
+	var btn_h := 52
+	var gap := 14
+	var by := center.y - 90.0
+
 	var resume_btn := Button.new()
-	resume_btn.text = "▶  Devam Et"
-	resume_btn.size = Vector2(280, 64)
-	resume_btn.position = viewport_size / 2.0 - Vector2(140, 20)
-	resume_btn.add_theme_font_size_override("font_size", 26)
+	resume_btn.text = "  ▶  Devam Et"
+	resume_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	resume_btn.position = Vector2(center.x - btn_w / 2.0, by)
+	resume_btn.add_theme_font_size_override("font_size", 22)
 	var rs := StyleBoxFlat.new()
-	rs.bg_color = Color(0.15, 0.55, 0.15)
-	rs.set_corner_radius_all(10)
+	rs.bg_color = Color(0.18, 0.5, 0.22)
+	rs.set_corner_radius_all(8)
+	rs.set_border_width_all(1)
+	rs.border_color = Color(0.35, 0.8, 0.4, 0.6)
 	resume_btn.add_theme_stylebox_override("normal", rs)
-	resume_btn.pressed.connect(func() -> void:
-		get_tree().paused = false
-		pause_root.queue_free())
+	resume_btn.add_theme_stylebox_override("hover", _btn_hover_style(rs))
+	resume_btn.pressed.connect(_close_pause_menu)
 	pause_root.add_child(resume_btn)
 
 	var lobby_btn2 := Button.new()
-	lobby_btn2.text = "🏠  Lobiye Dön"
-	lobby_btn2.size = Vector2(280, 64)
-	lobby_btn2.position = viewport_size / 2.0 - Vector2(140, -56)
-	lobby_btn2.add_theme_font_size_override("font_size", 22)
+	lobby_btn2.text = "  🏠  Lobiye Dön"
+	lobby_btn2.custom_minimum_size = Vector2(btn_w, btn_h)
+	lobby_btn2.position = Vector2(center.x - btn_w / 2.0, by + (btn_h + gap))
+	lobby_btn2.add_theme_font_size_override("font_size", 20)
 	var ls := StyleBoxFlat.new()
-	ls.bg_color = Color(0.18, 0.18, 0.35)
-	ls.set_corner_radius_all(10)
+	ls.bg_color = Color(0.2, 0.2, 0.35)
+	ls.set_corner_radius_all(8)
+	ls.set_border_width_all(1)
+	ls.border_color = Color(0.4, 0.4, 0.65, 0.6)
 	lobby_btn2.add_theme_stylebox_override("normal", ls)
+	lobby_btn2.add_theme_stylebox_override("hover", _btn_hover_style(ls))
 	lobby_btn2.pressed.connect(func() -> void:
-		get_tree().paused = false
+		_close_pause_menu()
 		get_tree().change_scene_to_file("res://lobby.tscn"))
 	pause_root.add_child(lobby_btn2)
 
+	var menu_btn := Button.new()
+	menu_btn.text = "  📋  Ana Menü"
+	menu_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	menu_btn.position = Vector2(center.x - btn_w / 2.0, by + 2 * (btn_h + gap))
+	menu_btn.add_theme_font_size_override("font_size", 20)
+	var ms := StyleBoxFlat.new()
+	ms.bg_color = Color(0.25, 0.2, 0.2)
+	ms.set_corner_radius_all(8)
+	ms.set_border_width_all(1)
+	ms.border_color = Color(0.55, 0.35, 0.35, 0.6)
+	menu_btn.add_theme_stylebox_override("normal", ms)
+	menu_btn.add_theme_stylebox_override("hover", _btn_hover_style(ms))
+	menu_btn.pressed.connect(func() -> void:
+		_close_pause_menu()
+		get_tree().change_scene_to_file("res://menu.tscn"))
+	pause_root.add_child(menu_btn)
+
+
+func _btn_hover_style(base: StyleBoxFlat) -> StyleBoxFlat:
+	var h := base.duplicate() as StyleBoxFlat
+	h.bg_color = Color(h.bg_color.r + 0.12, h.bg_color.g + 0.12, h.bg_color.b + 0.12)
+	return h
+
+
+func _close_pause_menu() -> void:
+	get_tree().paused = false
+	if _pause_menu and is_instance_valid(_pause_menu):
+		_pause_menu.queue_free()
+		_pause_menu = null
+
+
+func _on_pause_pressed() -> void:
+	_open_pause_menu()
+
 
 func _on_player_died() -> void:
-	GameData.record_game(wave, _kills_this_game)
+	GameData.record_game(wave, _kills_this_game, 0, 0, 0)
 	get_tree().paused = true
 
 	var overlay := ColorRect.new()

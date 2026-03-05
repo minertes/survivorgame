@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://menu_ui_molecule"]
+
+[ext_resource type="Script" path="res://src/ui/molecules/menu_ui_molecule.gd" id="1_menu_ui_molecule"]
+
+[node name="MenuUIMolecule" type="Control"]
+script = ExtResource("1_menu_ui_molecule")
+position = Vector2(0, 0)
+size = Vector2(720, 1280)

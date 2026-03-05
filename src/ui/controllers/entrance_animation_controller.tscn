@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://entrance_animation_controller"]
+
+[ext_resource type="Script" path="res://src/ui/controllers/entrance_animation_controller.gd" id="1_entrance_animation_controller"]
+
+[node name="EntranceAnimationController" type="Node"]
+script = ExtResource("1_entrance_animation_controller")

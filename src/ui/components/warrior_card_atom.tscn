@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://warrior_card_atom"]
+
+[ext_resource type="Script" path="res://src/ui/components/warrior_card_atom.gd" id="1_warrior_card_atom"]
+
+[node name="WarriorCardAtom" type="Control"]
+script = ExtResource("1_warrior_card_atom")
+position = Vector2(0, 0)
+size = Vector2(340, 430)

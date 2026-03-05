@@ -118,7 +118,7 @@ func print_test_summary() -> void:
 	print("Total Tests: %d" % test_results.size())
 	print("Passed: %d" % passed)
 	print("Failed: %d" % failed)
-	print("Success Rate: %.1f%%" % (float(passed) / test_results.size() * 100 if test_results.size() > 0 else 0))
+	print("Success Rate: %.1f%%" % (float(passed) / test_results.size() * 100.0 if test_results.size() > 0 else 0.0))
 
 # === TEST EXECUTION ===
 
@@ -655,7 +655,7 @@ func _update_status(message: String) -> void:
 
 func _update_results_display() -> void:
 	var summary = "UI Screens Test Results\n\n"
-	var test_count = test_results.size()
+	var _test_count = test_results.size()
 	
 	for test_name in test_results:
 		var result = test_results[test_name]
@@ -1340,7 +1340,7 @@ func _test_ui_memory_usage() -> bool:
 	if EventBus.is_available():
 		memory_before = Performance.get_monitor(Performance.MEMORY_STATIC)
 		
-		var event_counts = []
+		var _event_counts = []
 		for i in range(1000):
 			EventBus.emit_now_static("test_memory_event", {"index": i})
 		

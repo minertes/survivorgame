@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://sound_manager_integration"]
+
+[ext_resource type="Script" path="res://src/ui/integrations/sound_manager_integration.gd" id="1_sound_manager_integration"]
+
+[node name="SoundManagerIntegration" type="Node"]
+script = ExtResource("1_sound_manager_integration")

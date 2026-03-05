@@ -3,6 +3,9 @@
 class_name DropComponent
 extends Component
 
+# ItemEntity class'ını kullanabilmek için
+const ItemEntity = preload("res://src/gameplay/entities/item_entity.gd")
+
 # === DROP CONFIG ===
 var drop_table: Array = []  # {item_id, weight, min_count, max_count}
 var guaranteed_drops: Array = []  # Her ölümde kesin düşen item'lar
@@ -224,8 +227,7 @@ func _spawn_single_drop(drop: Dictionary, drop_position: Vector2) -> void:
 		var count = drop["count"]
 		
 		# Item entity oluştur
-		var item_scene = preload("res://src/gameplay/entities/item_entity.gd")
-		var item_entity = item_scene.new()
+		var item_entity = ItemEntity.new()
 		
 		# Item'ı başlat
 		item_entity.initialize(item_id, count, drop_position)

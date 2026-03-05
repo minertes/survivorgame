@@ -431,6 +431,7 @@ func _on_status_effect_tick(target: Node, effect: StatusEffectData) -> void:
 		StatusEffect.WEAKEN:
 			# Reduce damage output
 			# TODO: Implement damage reduction
+			pass
 	
 	status_effect_tick.emit(target, effect, damage)
 	

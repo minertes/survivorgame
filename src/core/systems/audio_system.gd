@@ -1,6 +1,7 @@
-# 🎵 AUDIO SYSTEM (ATOM)
-# Temel ses yönetim sistemi
-class_name AudioSystem extends Node
+# 🎵 AUDIO SYSTEM (LEGACY - DEPRECATED)
+# Eski monolitik audio sistemi - YENİ MODÜLER SİSTEM KULLANIN!
+# class_name kaldırıldı: Autoload "AudioSystem" = AudioSystemWrapper instance olsun diye
+extends Node
 
 # === AUDIO BUS NAMES ===
 enum AudioBus {

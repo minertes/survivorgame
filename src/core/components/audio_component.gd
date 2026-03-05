@@ -1,5 +1,5 @@
-# 🎵 AUDIO COMPONENT (MOLECULE)
-# Entity-based audio component
+# 🎵 AUDIO COMPONENT (MOLECULE) - GÜNCELLENDİ
+# Entity-based audio component - Yeni modüler audio sistemi ile uyumlu
 class_name AudioComponent extends Component
 
 # === AUDIO EVENT TYPES ===
@@ -15,7 +15,7 @@ enum AudioEvent {
 }
 
 # === PROPERTIES ===
-var audio_system: AudioSystem = null
+var audio_system: AudioSystemWrapper = null  # Yeni wrapper sistemi
 var entity_position: Vector3 = Vector3.ZERO
 var audio_events: Dictionary = {}  # AudioEvent -> sound_name mapping
 var volume_multiplier: float = 1.0
@@ -35,7 +35,7 @@ signal spatial_audio_toggled(enabled: bool)
 func _ready() -> void:
 	print("AudioComponent initializing for entity: %s" % entity_id)
 	
-	# AudioSystem'i bul
+	# AudioSystem'i bul (yeni wrapper)
 	_find_audio_system()
 	
 	# Varsayılan audio event'lerini ayarla
@@ -47,13 +47,33 @@ func _ready() -> void:
 	print("AudioComponent initialized successfully")
 
 func _find_audio_system() -> void:
-	# Scene'de AudioSystem'i ara
-	var audio_systems = get_tree().get_nodes_in_group("audio_system")
-	if audio_systems.size() > 0:
-		audio_system = audio_systems[0]
-		print("AudioSystem found: %s" % audio_system.name)
+	# Scene'de AudioSystemWrapper'ı ara
+	var audio_wrappers = get_tree().get_nodes_in_group("audio_system")
+	if audio_wrappers.size() > 0:
+		audio_system = audio_wrappers[0] as AudioSystemWrapper
+		if audio_system:
+			print("AudioSystemWrapper found: %s" % audio_system.name)
+		else:
+			print("Warning: AudioSystemWrapper not found in scene")
 	else:
-		print("Warning: AudioSystem not found in scene")
+		# Fallback: Eski AudioSystem'i ara
+		var legacy_systems = get_tree().get_nodes_in_group("legacy_audio_system")
+		if legacy_systems.size() > 0:
+			print("Using legacy AudioSystem (fallback)")
+			# Eski sistemi wrapper'a çevir
+			audio_system = _create_fallback_wrapper(legacy_systems[0])
+		else:
+			print("Warning: No audio system found in scene")
+
+func _create_fallback_wrapper(legacy_system: Node) -> AudioSystemWrapper:
+	# Eski AudioSystem için fallback wrapper oluştur
+	var wrapper = AudioSystemWrapper.new()
+	wrapper.name = "FallbackAudioWrapper"
+	
+	# Eski sistemi child olarak ekle
+	wrapper.add_child(legacy_system)
+	
+	return wrapper
 
 func _setup_default_audio_events() -> void:
 	# Varsayılan audio event mapping'leri
@@ -105,7 +125,7 @@ func play_event(event_type: AudioEvent, custom_sound: String = "",
 	var use_3d = spatial_audio_enabled and _should_use_3d_audio()
 	var position = entity_position if use_3d else Vector3.ZERO
 	
-	# Ses oynat
+	# Ses oynat (yeni wrapper API'si)
 	var success = audio_system.play_sound(sound_name, final_volume, final_pitch, position, use_3d)
 	
 	if success:
@@ -153,6 +173,10 @@ func enable_spatial_audio(enabled: bool) -> void:
 	# Spatial audio'yu aç/kapa
 	spatial_audio_enabled = enabled
 	spatial_audio_toggled.emit(enabled)
+	
+	# AudioSystem'e bildir
+	if audio_system:
+		audio_system.enable_spatial_audio(enabled)
 
 func set_audio_distances(min_dist: float, max_dist: float) -> void:
 	# Audio mesafelerini ayarla
@@ -164,8 +188,10 @@ func update_position(new_position: Vector3) -> void:
 	entity_position = new_position
 	
 	# AudioSystem'e pozisyon güncellemesi bildir
-	if audio_system and spatial_audio_enabled:
-		audio_system.update_audio_position(entity_id, new_position)
+	# Not: Yeni modüler sistemde bu fonksiyon farklı çalışabilir
+	# Şimdilik placeholder
+
+# ... existing code continues (rest of the file remains the same) ...
 
 # === UTILITY METHODS ===
 

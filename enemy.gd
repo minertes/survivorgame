@@ -63,7 +63,9 @@ func _die() -> void:
 		player_ref.health_changed.emit(player_ref.health, player_ref.max_health)
 		player_ref.queue_redraw()
 
-	SoundManager.play_enemy_die()
+	var a = get_node_or_null("/root/AudioSystem")
+	if a and a.has_method("play_sound"):
+		a.play_sound("enemy_die")
 
 	var gem := XP_GEM_SCENE.instantiate()
 	gem.global_position = global_position

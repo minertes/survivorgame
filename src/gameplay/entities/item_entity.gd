@@ -234,7 +234,21 @@ func _create_glow_effect() -> void:
 		glow_effect.queue_free()
 	
 	glow_effect = Sprite2D.new()
-	glow_effect.texture = preload("res://assets/effects/glow_circle.png")
+	# Basit bir daire texture'ı oluştur
+	var image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color(1, 1, 1, 1))
+	
+	# Daire çiz
+	var center = Vector2(32, 32)
+	for x in range(64):
+		for y in range(64):
+			var distance = center.distance_to(Vector2(x, y))
+			if distance <= 32:
+				var alpha = 1.0 - (distance / 32.0)
+				image.set_pixel(x, y, Color(1, 1, 1, alpha))
+	
+	var texture = ImageTexture.create_from_image(image)
+	glow_effect.texture = texture
 	glow_effect.centered = true
 	glow_effect.modulate = RARITY_COLORS.get(rarity, Color.WHITE)
 	glow_effect.modulate.a = 0.3
@@ -306,9 +320,24 @@ func _update_visuals() -> void:
 		particle_effect.modulate = RARITY_COLORS.get(rarity, Color.WHITE)
 
 func _get_item_texture() -> Texture2D:
-	# Burada asset manager'dan texture alınacak
-	# Şimdilik placeholder
-	return preload("res://assets/items/placeholder.png")
+	# Basit bir kare texture oluştur
+	var image = Image.create(32, 32, false, Image.FORMAT_RGBA8)
+	
+	# Rarity'ye göre renk
+	var color = RARITY_COLORS.get(rarity, Color(0.8, 0.8, 0.8))
+	image.fill(color)
+	
+	# Kenarları daha koyu yap
+	for x in range(32):
+		for y in range(32):
+			if x < 2 or x >= 30 or y < 2 or y >= 30:
+				image.set_pixel(x, y, color.darkened(0.5))
+			elif (x == 15 and y == 15) or (x == 16 and y == 16):
+				# Ortada parlak nokta
+				image.set_pixel(x, y, color.lightened(0.3))
+	
+	var texture = ImageTexture.create_from_image(image)
+	return texture
 
 func _play_pickup_sound() -> void:
 	var sound_name = item_data.get("sound", "item_pickup")

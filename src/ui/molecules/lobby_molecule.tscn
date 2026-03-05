@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://lobby_molecule_scene"]
+
+[ext_resource type="Script" path="res://src/ui/molecules/lobby_molecule.gd" id="1_lobby_molecule"]
+[ext_resource type="Script" path="res://src/ui/molecules/components/lobby_header_component.gd" id="2_header_component"]
+[ext_resource type="Script" path="res://src/ui/molecules/components/lobby_content_manager.gd" id="3_content_manager"]
+[ext_resource type="Script" path="res://src/ui/molecules/components/lobby_player_data_manager.gd" id="4_player_data_manager"]
+[ext_resource type="Script" path="res://src/ui/components/currency_display_atom.gd" id="5_currency_display"]
+[ext_resource type="Script" path="res://src/ui/molecules/core/lobby_component_initializer.gd" id="6_component_initializer"]
+[ext_resource type="Script" path="res://src/ui/molecules/core/lobby_signal_router.gd" id="7_signal_router"]
+
+[node name="LobbyMolecule" type="Control"]
+script = ExtResource("1_lobby_molecule")
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HeaderComponent" type="PanelContainer" parent="."]
+script = ExtResource("2_header_component")
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_bottom = 60.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HeaderComponent"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -20.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackButton" type="Button" parent="HeaderComponent/HBoxContainer"]
+layout_mode = 1
+text = "◀ GERİ"
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 100.0
+offset_bottom = 40.0
+
+[node name="CurrencyDisplayAtom" type="Control" parent="HeaderComponent/HBoxContainer"]
+script = ExtResource("5_currency_display")
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -200.0
+offset_right = 0.0
+offset_bottom = 40.0
+
+[node name="ContentManager" type="Control" parent="."]
+script = ExtResource("3_content_manager")
+layout_mode = 1
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 70.0
+offset_bottom = -80.0
+
+[node name="ContentContainer" type="Control" parent="ContentManager"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="PlayButton" type="Button" parent="ContentManager"]
+layout_mode = 1
+text = "🎮 OYUNA BAŞLA"
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -70.0
+offset_right = -100.0
+offset_bottom = -10.0
+offset_left = 100.0
+
+[node name="PlayerDataManager" type="Node" parent="."]
+script = ExtResource("4_player_data_manager")
+
+[node name="ComponentInitializer" type="Node" parent="."]
+script = ExtResource("6_component_initializer")
+
+[node name="SignalRouter" type="Node" parent="."]
+script = ExtResource("7_signal_router")

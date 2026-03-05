@@ -136,8 +136,9 @@ func unsubscribe_all_for_object(obj: Object) -> void:
 		# Remove in reverse order
 		to_remove.reverse()
 		for i in to_remove:
+			var removed_listener = listeners[i]["callable"]
 			listeners.remove_at(i)
-			listener_removed.emit(event_type, listener)
+			listener_removed.emit(event_type, removed_listener)
 		
 		if listeners.is_empty():
 			events_to_remove.append(event_type)
@@ -213,9 +214,7 @@ func _emit_event(event: Event) -> void:
 				continue
 			
 			# Call the listener
-			var result = listener.call(event)
-			if result is GDScriptFunctionState:
-				result = await result.completed
+			var result = await listener.call(event)
 	
 	event_processed.emit(event)
 

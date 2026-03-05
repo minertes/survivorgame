@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://menu_stats_display_atom"]
+
+[ext_resource type="Script" path="res://src/ui/components/menu_stats_display_atom.gd" id="1_menu_stats_display_atom"]
+
+[node name="MenuStatsDisplayAtom" type="Control"]
+script = ExtResource("1_menu_stats_display_atom")
+position = Vector2(0, 0)
+size = Vector2(720, 100)

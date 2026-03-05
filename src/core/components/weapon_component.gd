@@ -221,7 +221,7 @@ func _add_fire_stat() -> void:
 func serialize() -> Dictionary:
 	var data = super.serialize()
 	
-	// ... existing code ...
+	# ... existing code ...
 
 	data["multishot_count"] = multishot_count
 	data["spread_angle"] = spread_angle
@@ -236,7 +236,7 @@ func serialize() -> Dictionary:
 func deserialize(data: Dictionary) -> void:
 	super.deserialize(data)
 	
-	// ... existing code ...
+	# ... existing code ...
 
 	if "multishot_count" in data:
 		multishot_count = data["multishot_count"]

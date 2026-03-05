@@ -65,6 +65,12 @@ signal leveled_up(new_level: int)
 signal died
 
 
+func _play_sound(sound_name: String) -> void:
+	var a = get_node_or_null("/root/AudioSystem")
+	if a and a.has_method("play_sound"):
+		a.play_sound(sound_name)
+
+
 func _ready() -> void:
 	add_to_group("player")
 
@@ -376,7 +382,7 @@ func _on_shoot_timer_timeout() -> void:
 						health_changed.emit(health, max_health)
 			_spawn_hit_effect(global_position + dir * attack_range * 0.55,
 				Color(1.0, 0.88, 0.3), attack_range * 0.4, true)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 		"bow":
 			if not has_target: return
@@ -386,7 +392,7 @@ func _on_shoot_timer_timeout() -> void:
 				_fire_bullet(dir.rotated(0.22), 1.0)
 			else:
 				_fire_bullet(dir, 1.0)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 		"pistol":
 			if not has_target: return
@@ -396,32 +402,32 @@ func _on_shoot_timer_timeout() -> void:
 				_fire_bullet(dir.rotated(0.25), 1.0)
 			else:
 				_fire_bullet(dir, 1.0)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 		"shotgun":
 			if not has_target: return
 			var pellets := 5 + (weapon_level - 1) * 2
 			for i in pellets:
 				_fire_bullet(dir.rotated((i - pellets / 2) * 0.18), 0.55)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 		"machinegun":
 			if not has_target: return
 			_fire_bullet(dir.rotated(randf_range(-0.12, 0.12)), 0.60)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 		"magic":
 			var count := 6 + (weapon_level - 1) * 2
 			for i in count:
 				_fire_bullet(Vector2.RIGHT.rotated(i * TAU / count), 0.65)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 		"sniper":
 			if not has_target: return
 			_fire_bullet(dir, 4.0)
 			if weapon_level >= 3:
 				_fire_bullet(dir.rotated(0.08), 2.5)
-			SoundManager.play_shoot()
+			_play_sound("shoot")
 
 	# Sihir halkası — silahını değiştirmeden ek mermi
 	if bonus_magic and weapon_id != "magic":
@@ -436,7 +442,7 @@ func take_damage(amount: float) -> void:
 
 	health = maxf(0.0, health - maxf(1.0, amount - armor))
 	health_changed.emit(health, max_health)
-	SoundManager.play_hurt()
+	_play_sound("hurt")
 
 	if health <= 0.0:
 		lives -= 1
@@ -467,4 +473,4 @@ func _level_up() -> void:
 	level += 1
 	xp_to_next_level = int(xp_to_next_level * 1.55)
 	leveled_up.emit(level)
-	SoundManager.play_level_up()
+	_play_sound("level_up")

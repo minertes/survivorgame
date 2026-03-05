@@ -11,14 +11,14 @@ config_version=5
 [application]
 
 config/name="SURVIVORGAME"
-run/main_scene="res://test_scene.tscn"
+run/main_scene="res://menu.tscn"
 config/features=PackedStringArray("4.6")
 config/icon="res://icon.svg"
 "#GeÃ§icitestiÃ§inconfig/features"=PackedStringArray("4.6", "Forward Plus")
 
 [autoload]
 
-SoundManager="*res://sound_manager.gd"
+AudioSystem="*res://src/core/systems/audio_system_wrapper.gd"
 GameState="*res://game_state.gd"
 GameData="*res://game_data.gd"
 

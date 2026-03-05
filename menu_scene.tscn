@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://menu_scene"]
+
+[ext_resource type="Script" path="res://src/ui/scenes/menu_scene.gd" id="1_menu_scene"]
+[ext_resource type="Script" path="res://src/ui/components/space_background_atom.gd" id="2_space_background"]
+[ext_resource type="Script" path="res://src/ui/components/warrior_card_atom.gd" id="3_warrior_card"]
+[ext_resource type="Script" path="res://src/ui/components/button_effects_atom.gd" id="4_button_effects"]
+[ext_resource type="Script" path="res://src/ui/components/menu_stats_display_atom.gd" id="5_menu_stats"]
+[ext_resource type="Script" path="res://src/ui/molecules/menu_ui_molecule.gd" id="6_menu_ui"]
+[ext_resource type="Script" path="res://src/ui/controllers/entrance_animation_controller.gd" id="7_entrance_anim"]
+[ext_resource type="Script" path="res://src/ui/integrations/sound_manager_integration.gd" id="8_sound_integration"]
+
+[node name="MenuScene" type="Node2D"]
+script = ExtResource("1_menu_scene")
+
+[node name="SpaceBackgroundAtom" type="Control" parent="."]
+script = ExtResource("2_space_background")
+position = Vector2(0, 0)
+size = Vector2(720, 1280)
+
+[node name="WarriorCardAtom" type="Control" parent="."]
+script = ExtResource("3_warrior_card")
+position = Vector2(190, 242)
+size = Vector2(340, 430)
+
+[node name="ButtonEffectsAtom" type="Control" parent="."]
+script = ExtResource("4_button_effects")
+position = Vector2(160, 648)
+size = Vector2(400, 80)
+
+[node name="MenuStatsDisplayAtom" type="Control" parent="."]
+script = ExtResource("5_menu_stats")
+position = Vector2(0, 875)
+size = Vector2(720, 100)
+
+[node name="MenuUIMolecule" type="Control" parent="."]
+script = ExtResource("6_menu_ui")
+position = Vector2(0, 0)
+size = Vector2(720, 1280)
+
+[node name="EntranceAnimationController" type="Node" parent="."]
+script = ExtResource("7_entrance_anim")
+
+[node name="SoundManagerIntegration" type="Node" parent="."]
+script = ExtResource("8_sound_integration")

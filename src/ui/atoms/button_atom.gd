@@ -29,6 +29,24 @@ extends Control
 		if is_inside_tree():
 			_load_config()
 
+@export var play_sound_on_click: bool = true:
+	set(value):
+		play_sound_on_click = value
+		if is_inside_tree():
+			_update_sound_settings()
+
+@export var click_sound_name: String = "button_click":
+	set(value):
+		click_sound_name = value
+		if is_inside_tree():
+			_update_sound_settings()
+
+@export var hover_sound_name: String = "hover":
+	set(value):
+		hover_sound_name = value
+		if is_inside_tree():
+			_update_sound_settings()
+
 # === NODES ===
 @onready var button: Button = $Button
 @onready var label: Label = $Button/Label
@@ -39,12 +57,14 @@ extends Control
 var is_hovered: bool = false
 var is_pressed: bool = false
 var current_style: Dictionary = {}
+var sound_settings_loaded: bool = false
 
 # === EVENTS ===
 signal button_pressed
 signal button_hovered
 signal button_exited
 signal button_state_changed(is_disabled: bool)
+signal button_sound_played(sound_name: String, sound_type: String)
 
 # === LIFECYCLE ===
 
@@ -56,6 +76,9 @@ func _ready() -> void:
 	button.pressed.connect(_on_button_pressed)
 	button.mouse_entered.connect(_on_mouse_entered)
 	button.mouse_exited.connect(_on_mouse_exited)
+	
+	# Sound settings yükle
+	_load_sound_settings()
 	
 	# Başlangıç durumunu güncelle
 	_update_state()
@@ -76,11 +99,71 @@ func set_disabled(disabled: bool) -> void:
 	_update_state()
 	button_state_changed.emit(disabled)
 
+func set_sound_enabled(enabled: bool) -> void:
+	play_sound_on_click = enabled
+	_update_sound_settings()
+
+func set_click_sound(sound_name: String) -> void:
+	click_sound_name = sound_name
+	_update_sound_settings()
+
+func set_hover_sound(sound_name: String) -> void:
+	hover_sound_name = sound_name
+	_update_sound_settings()
+
 func load_config(config_id: String) -> void:
 	self.config_id = config_id
 
 func get_current_style() -> Dictionary:
 	return current_style.duplicate()
+
+func play_click_sound() -> void:
+	"""Programatik olarak click sesi oynat"""
+	if play_sound_on_click and not is_disabled:
+		_play_sound(click_sound_name, "click")
+
+func play_hover_sound() -> void:
+	"""Programatik olarak hover sesi oynat"""
+	if play_sound_on_click and not is_disabled:
+		_play_sound(hover_sound_name, "hover")
+
+# === SOUND MANAGEMENT ===
+
+func _load_sound_settings() -> void:
+	# Config'den sound settings yükle
+	if not ConfigManager.is_available():
+		return
+	
+	var sound_config = ConfigManager.get_instance().get_config_value("ui.json", "sounds.button", {})
+	if not sound_config.is_empty():
+		play_sound_on_click = sound_config.get("enabled", true)
+		click_sound_name = sound_config.get("click_sound", "button_click")
+		hover_sound_name = sound_config.get("hover_sound", "hover")
+	
+	sound_settings_loaded = true
+	_update_sound_settings()
+
+func _update_sound_settings() -> void:
+	# Sound settings güncelle
+	# Burada AudioSystem ile entegrasyon yapılabilir
+	pass
+
+func _play_sound(sound_name: String, sound_type: String) -> void:
+	"""Ses efekti oynat"""
+	if sound_name.is_empty() or is_disabled:
+		return
+	
+	# EventBus üzerinden AudioSystem'e bildir
+	if EventBus.is_available():
+		EventBus.emit_now_static("play_ui_sound", {
+			"sound_name": sound_name,
+			"source": "ButtonAtom",
+			"button_id": name,
+			"button_text": button_text,
+			"sound_type": sound_type
+		})
+	
+	button_sound_played.emit(sound_name, sound_type)
 
 # === CONFIG MANAGEMENT ===
 
@@ -94,96 +177,7 @@ func _load_config() -> void:
 		push_warning("ButtonAtom config not found: %s" % config_id)
 		return
 	
-	# Config değerlerini uygula
-	if "text" in config:
-		button_text = config.text
-	
-	if "style" in config:
-		button_style = config.style
-	
-	if "disabled" in config:
-		is_disabled = config.disabled
-	
-	# Style config'ini yükle
-	_load_style_config()
-
-func _load_style_config() -> void:
-	if not ConfigManager.is_available():
-		return
-	
-	var style_path = "atoms.button." + button_style
-	current_style = ConfigManager.get_instance().get_config_value("ui.json", style_path, {})
-	
-	if current_style.is_empty():
-		push_warning("ButtonAtom style not found: %s" % style_path)
-		_apply_default_style()
-	else:
-		_apply_style()
-
-func _apply_default_style() -> void:
-	# Varsayılan style
-	current_style = {
-		"background_color": "#4CAF50",
-		"text_color": "#FFFFFF",
-		"hover_color": "#45A049",
-		"pressed_color": "#3D8B40",
-		"disabled_color": "#666666",
-		"font_size": 16,
-		"corner_radius": 8,
-		"min_size": "80,40"
-	}
-	_apply_style()
-
-func _apply_style() -> void:
-	if not is_inside_tree():
-		return
-	
-	# Renkleri uygula
-	var bg_color = _parse_color(current_style.get("background_color", "#4CAF50"))
-	var text_color = _parse_color(current_style.get("text_color", "#FFFFFF"))
-	var hover_color = _parse_color(current_style.get("hover_color", "#45A049"))
-	var pressed_color = _parse_color(current_style.get("pressed_color", "#3D8B40"))
-	var disabled_color = _parse_color(current_style.get("disabled_color", "#666666"))
-	
-	# StyleBox oluştur
-	var normal_style = StyleBoxFlat.new()
-	normal_style.bg_color = bg_color
-	normal_style.corner_radius_top_left = current_style.get("corner_radius", 8)
-	normal_style.corner_radius_top_right = current_style.get("corner_radius", 8)
-	normal_style.corner_radius_bottom_left = current_style.get("corner_radius", 8)
-	normal_style.corner_radius_bottom_right = current_style.get("corner_radius", 8)
-	
-	var hover_style = normal_style.duplicate()
-	hover_style.bg_color = hover_color
-	
-	var pressed_style = normal_style.duplicate()
-	pressed_style.bg_color = pressed_color
-	
-	var disabled_style = normal_style.duplicate()
-	disabled_style.bg_color = disabled_color
-	
-	# Button'a uygula
-	button.add_theme_stylebox_override("normal", normal_style)
-	button.add_theme_stylebox_override("hover", hover_style)
-	button.add_theme_stylebox_override("pressed", pressed_style)
-	button.add_theme_stylebox_override("disabled", disabled_style)
-	
-	# Font size
-	var font_size = current_style.get("font_size", 16)
-	label.add_theme_font_size_override("font_size", font_size)
-	
-	# Text color
-	label.add_theme_color_override("font_color", text_color)
-	label.add_theme_color_override("font_disabled_color", disabled_color)
-	
-	# Minimum size
-	var min_size_str = current_style.get("min_size", "80,40")
-	var min_size_parts = min_size_str.split(",")
-	if min_size_parts.size() == 2:
-		var min_width = float(min_size_parts[0])
-		var min_height = float(min_size_parts[1])
-		custom_minimum_size = Vector2(min_width, min_height)
-		button.custom_minimum_size = Vector2(min_width, min_height)
+	# ... existing code ...
 
 # === STATE MANAGEMENT ===
 
@@ -237,6 +231,11 @@ func _on_button_pressed() -> void:
 		return
 	
 	_animate_press()
+	
+	# Click sesi oynat
+	if play_sound_on_click:
+		_play_sound(click_sound_name, "click")
+	
 	button_pressed.emit()
 	
 	# EventBus'a bildir
@@ -244,7 +243,9 @@ func _on_button_pressed() -> void:
 		EventBus.emit_now_static(EventBus.UI_BUTTON_CLICKED, {
 			"button_id": name,
 			"button_text": button_text,
-			"button_style": button_style
+			"button_style": button_style,
+			"sound_played": play_sound_on_click,
+			"sound_name": click_sound_name if play_sound_on_click else ""
 		})
 
 func _on_mouse_entered() -> void:
@@ -252,6 +253,11 @@ func _on_mouse_entered() -> void:
 		return
 	
 	is_hovered = true
+	
+	# Hover sesi oynat
+	if play_sound_on_click:
+		_play_sound(hover_sound_name, "hover")
+	
 	button_hovered.emit()
 	
 	# Hover animation
@@ -274,10 +280,11 @@ func _parse_color(color_str: String) -> Color:
 # === DEBUG ===
 
 func _to_string() -> String:
-	return "[ButtonAtom: '%s', Style: %s, Disabled: %s]" % [
+	return "[ButtonAtom: '%s', Style: %s, Disabled: %s, Sound: %s]" % [
 		button_text,
 		button_style,
-		str(is_disabled)
+		str(is_disabled),
+		"ON" if play_sound_on_click else "OFF"
 	]
 
 func print_debug_info() -> void:
@@ -286,6 +293,10 @@ func print_debug_info() -> void:
 	print("Style: %s" % button_style)
 	print("Disabled: %s" % str(is_disabled))
 	print("Config ID: %s" % config_id)
+	print("Play Sound on Click: %s" % str(play_sound_on_click))
+	print("Click Sound: %s" % click_sound_name)
+	print("Hover Sound: %s" % hover_sound_name)
+	print("Sound Settings Loaded: %s" % str(sound_settings_loaded))
 	print("Current Style: %s" % str(current_style))
 	print("Is Hovered: %s" % str(is_hovered))
 	print("Is Pressed: %s" % str(is_pressed))

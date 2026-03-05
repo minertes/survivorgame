@@ -1,552 +1,624 @@
+# 🏢 LOBBY SCENE (ENTERPRISE EDITION)
+# Sağlam, modüler ve hatasız lobi sahnesi
 extends Node2D
-# ══════════════════════════════════════════════════════════════
-#  LOBBY — Karakter + Silah + Bayrak + Stats merkezi
-# ══════════════════════════════════════════════════════════════
 
-const VP := Vector2(720.0, 1280.0)
+# === CONSTANTS ===
+const VIEWPORT_SIZE := Vector2(720.0, 1280.0)
 
-# ── Tab sistemi ───────────────────────────────────────────────
-enum Tab { FLAGS, STATS }
-var _active_tab: int = Tab.FLAGS
+# === COMPONENT REFERENCES ===
+var lobby_molecule: Control = null
+var background_layer: Control = null
+var ui_layer: CanvasLayer = null
+var audio_system: Node = null
+var game_data: Node = null
 
-# ── UI kökleri ────────────────────────────────────────────────
-var _ui_layer: CanvasLayer
-var _root: Control
-var _content: Control      # Tab içerikleri burada değişir
-var _coin_label: Label
-var _char_preview: Control
-var _char_name_lbl: Label
-var _flag_name_lbl: Label
-var _tab_btns: Array[Button] = []
-
-# ── Arka plan animasyonu ───────────────────────────────────────
+# === STATE ===
 var _time := 0.0
+var _is_initialized := false
+var _is_transitioning := false
+var _esc_menu: Control = null  # ESC ile açılan 3'lü buton menüsü
 
+# === LIFECYCLE ===
 
 func _ready() -> void:
-	_build_ui()
-	_refresh_labels()
-	_show_tab(Tab.FLAGS)
-
+	print("🚀 Lobby Scene: Initializing...")
+	
+	# Sistem referanslarını al
+	_get_system_references()
+	
+	# Katmanları oluştur
+	_create_layers()
+	
+	# LobbyMolecule'ü yükle
+	_load_lobby_molecule()
+	
+	# Oyun verilerini yükle
+	_load_game_data()
+	
+	_is_initialized = true
+	print("✅ Lobby Scene: Initialized successfully")
 
 func _process(delta: float) -> void:
 	_time += delta
 	queue_redraw()
-	if is_instance_valid(_coin_label):
-		_coin_label.text = "💰 %d XP" % GameData.xp_coins
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_toggle_esc_menu()
+		get_viewport().set_input_as_handled()
 
-# ── Arka plan ─────────────────────────────────────────────────
-func _draw() -> void:
-	# Koyu gradient
-	draw_rect(Rect2(Vector2.ZERO, VP), Color(0.05, 0.04, 0.12))
-	for i in 8:
-		var a := float(i + 1) / 8.0 * 0.18
-		var h := float(i) * 55.0
-		draw_rect(Rect2(0, VP.y - 440.0 + h, VP.x, 55.0), Color(0.15, 0.05, 0.35, a))
+func _toggle_esc_menu() -> void:
+	if _is_transitioning:
+		return
+	if _esc_menu and is_instance_valid(_esc_menu) and _esc_menu.visible:
+		_close_esc_menu()
+		return
+	_show_esc_menu()
 
-	# Hex grid pattern (hafif)
-	var s := 36.0
-	var cols := int(VP.x / (s * 1.73)) + 2
-	var rows := int(VP.y / (s * 1.5)) + 2
-	for row in rows:
-		for col in cols:
-			var hx := col * s * 1.73 + (s * 0.87 if row % 2 == 1 else 0.0)
-			var hy := row * s * 1.5
-			_draw_hex(hx, hy, s * 0.48, Color(0.3, 0.2, 0.6, 0.06 + sin(_time * 0.4 + row * 0.3) * 0.02))
+func _show_esc_menu() -> void:
+	if _esc_menu and is_instance_valid(_esc_menu):
+		_esc_menu.show()
+		return
+	var size_view := Vector2(VIEWPORT_SIZE.x, VIEWPORT_SIZE.y)
+	var root := Control.new()
+	root.name = "EscMenu"
+	root.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	root.position = Vector2.ZERO
+	root.size = size_view
+	if ui_layer:
+		ui_layer.add_child(root)
+	else:
+		add_child(root)
+	_esc_menu = root
 
-	# Karakter önizleme arka plan hâlesi
-	var cx := VP.x / 2.0
-	var pulse := sin(_time * 1.8) * 0.5 + 0.5
-	var char_cy := 158.0
-	for i in 5:
-		var gr := 70.0 + float(i) * 16.0 + pulse * 10.0
-		var ga := (5.0 - float(i)) / 5.0 * 0.06
-		draw_circle(Vector2(cx, char_cy), gr, Color(0.45, 0.2, 0.9, ga))
+	var overlay := ColorRect.new()
+	overlay.color = Color(0.06, 0.06, 0.12, 0.88)
+	overlay.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	overlay.position = Vector2.ZERO
+	overlay.size = size_view
+	root.add_child(overlay)
 
-	# Karakter çizimi
-	_draw_warrior_preview(cx, char_cy - 30.0)
-
-
-func _draw_hex(cx: float, cy: float, r: float, col: Color) -> void:
-	var pts := PackedVector2Array()
-	for i in 6:
-		var a := i * TAU / 6.0
-		pts.append(Vector2(cx + cos(a) * r, cy + sin(a) * r))
-	draw_colored_polygon(pts, col)
-
-
-func _draw_warrior_preview(cx: float, cy: float) -> void:
-	# Gölge
-	var sh := PackedVector2Array()
-	for i in 16:
-		var a := i * TAU / 16.0
-		sh.append(Vector2(cx + cos(a) * 22.0, cy + 62.0 + sin(a) * 5.5))
-	draw_colored_polygon(sh, Color(0, 0, 0, 0.30))
-	# Botlar
-	draw_rect(Rect2(cx - 14.0, cy + 50.0, 10.0, 13.0), Color(0.18, 0.18, 0.3))
-	draw_rect(Rect2(cx + 4.0,  cy + 50.0, 10.0, 13.0), Color(0.18, 0.18, 0.3))
-	# Bacaklar
-	draw_rect(Rect2(cx - 15.0, cy + 26.0, 11.0, 26.0), Color(0.2, 0.45, 0.85))
-	draw_rect(Rect2(cx + 4.0,  cy + 26.0, 11.0, 26.0), Color(0.2, 0.45, 0.85))
-	# Gövde / Zırh
-	draw_rect(Rect2(cx - 18.0, cy + 1.0,  36.0, 28.0), Color(0.22, 0.48, 0.9))
-	draw_rect(Rect2(cx - 12.0, cy + 7.0,  24.0,  3.0), Color(0.35, 0.6, 1.0, 0.6))
-	# Omuzluklar
-	draw_circle(Vector2(cx - 20.0, cy + 5.0), 8.5, Color(0.3, 0.55, 1.0))
-	draw_circle(Vector2(cx + 20.0, cy + 5.0), 8.5, Color(0.3, 0.55, 1.0))
-	# Boyun
-	draw_rect(Rect2(cx - 4.0, cy - 8.0, 8.0, 11.0), Color(0.85, 0.7, 0.6))
-	# Kask
-	draw_arc(Vector2(cx, cy - 14.0), 13.0, PI, TAU, 16, Color(0.28, 0.52, 0.95), 13.0)
-	draw_arc(Vector2(cx, cy - 14.0), 13.5, PI * 1.15, PI * 1.85, 10, Color(0.15, 0.3, 0.7), 3.5)
-	# Yüz
-	draw_circle(Vector2(cx, cy - 11.0), 9.5, Color(0.88, 0.73, 0.62))
-	draw_circle(Vector2(cx - 3.0, cy - 12.5), 1.8, Color(0.15, 0.25, 0.5))
-	draw_circle(Vector2(cx + 3.0, cy - 12.5), 1.8, Color(0.15, 0.25, 0.5))
-	# Sağ kol
-	draw_rect(Rect2(cx + 18.0, cy + 3.0, 8.0, 17.0), Color(0.20, 0.45, 0.85))
-	# Sol kol (öne uzanmış - silahı destekliyor)
-	draw_rect(Rect2(cx - 18.0, cy + 11.0, 44.0, 8.0), Color(0.20, 0.45, 0.85))
-	# ── Makineli tüfek ──────────────────────────────────────
-	# Stok (ahşap)
-	draw_rect(Rect2(cx + 4.0,  cy + 5.0,  12.0,  8.0), Color(0.32, 0.24, 0.16))
-	# Ana gövde
-	draw_rect(Rect2(cx + 14.0, cy + 5.0,  26.0, 10.0), Color(0.24, 0.24, 0.29))
-	# Üst ray
-	draw_rect(Rect2(cx + 14.0, cy + 2.5,  29.0,  3.5), Color(0.30, 0.30, 0.36))
-	# Namlu (uzun)
-	draw_rect(Rect2(cx + 40.0, cy + 6.5,  27.0,  6.5), Color(0.20, 0.20, 0.25))
-	# Şarjör
-	draw_rect(Rect2(cx + 20.0, cy + 14.0, 10.0, 16.0), Color(0.20, 0.20, 0.26))
-	draw_rect(Rect2(cx + 21.0, cy + 28.0,  8.0,  3.0), Color(0.28, 0.28, 0.34))
-	# Nişangah
-	draw_rect(Rect2(cx + 30.0, cy + 0.0,   8.0,  3.5), Color(0.36, 0.36, 0.42))
-	# Mermi alev
-	draw_circle(Vector2(cx + 67.0, cy + 9.5), 3.8, Color(1.0, 0.65, 0.10, 0.68))
-	draw_circle(Vector2(cx + 67.0, cy + 9.5), 6.5, Color(1.0, 0.35, 0.05, 0.20))
-
-
-# ══════════════════════════════════════════════════════════════
-#  UI İNŞASI
-# ══════════════════════════════════════════════════════════════
-func _build_ui() -> void:
-	_ui_layer = CanvasLayer.new()
-	_ui_layer.layer = 1
-	add_child(_ui_layer)
-
-	_root = Control.new()
-	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_ui_layer.add_child(_root)
-
-	_build_header()
-	_build_char_preview()
-	_build_tab_bar()
-	_build_content_area()
-	_build_play_button()
-
-
-func _build_header() -> void:
-	var header := PanelContainer.new()
-	header.position = Vector2.ZERO
-	header.size = Vector2(VP.x, 70.0)
-	var sty := StyleBoxFlat.new()
-	sty.bg_color = Color(0.06, 0.04, 0.16, 0.95)
-	sty.border_color = Color(0.4, 0.25, 0.8, 0.8)
-	sty.set_border_width_all(0)
-	sty.border_width_bottom = 2
-	header.add_theme_stylebox_override("panel", sty)
-	_root.add_child(header)
-
-	var hb := HBoxContainer.new()
-	hb.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hb.add_theme_constant_override("separation", 0)
-	header.add_child(hb)
-
-	# Geri butonu
-	var back := Button.new()
-	back.text = "◀"
-	back.custom_minimum_size = Vector2(60, 70)
-	back.add_theme_font_size_override("font_size", 26)
-	back.add_theme_color_override("font_color", Color(0.75, 0.65, 1.0))
-	var back_sty := StyleBoxFlat.new()
-	back_sty.bg_color = Color(0.10, 0.07, 0.22, 0.0)
-	back.add_theme_stylebox_override("normal", back_sty)
-	var back_sty_h := StyleBoxFlat.new()
-	back_sty_h.bg_color = Color(0.18, 0.10, 0.36)
-	back_sty_h.set_corner_radius_all(6)
-	back.add_theme_stylebox_override("hover", back_sty_h)
-	back.pressed.connect(func(): get_tree().change_scene_to_file("res://menu.tscn"))
-	hb.add_child(back)
-
-	# Başlık
+	var center := size_view / 2.0
 	var title := Label.new()
-	title.text = "SURVIVOR.IO"
-	title.add_theme_font_size_override("font_size", 30)
-	title.add_theme_color_override("font_color", Color(0.85, 0.65, 1.0))
+	title.text = "MENÜ"
+	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
+	title.position = center - Vector2(60, 140)
+	root.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "ESC — Menüyü kapat"
+	hint.add_theme_font_size_override("font_size", 14)
+	hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.75))
+	hint.position = center - Vector2(70, 100)
+	root.add_child(hint)
+
+	var btn_w := 300
+	var btn_h := 52
+	var gap := 14
+	var by := center.y - 90.0
+
+	var stay_btn := Button.new()
+	stay_btn.text = "  ▶  Lobide Devam"
+	stay_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	stay_btn.position = Vector2(center.x - btn_w / 2.0, by)
+	stay_btn.add_theme_font_size_override("font_size", 20)
+	var rs := StyleBoxFlat.new()
+	rs.bg_color = Color(0.18, 0.5, 0.22)
+	rs.set_corner_radius_all(8)
+	rs.set_border_width_all(1)
+	rs.border_color = Color(0.35, 0.8, 0.4, 0.6)
+	stay_btn.add_theme_stylebox_override("normal", rs)
+	stay_btn.add_theme_stylebox_override("hover", _lobby_btn_hover(rs))
+	stay_btn.pressed.connect(_close_esc_menu)
+	root.add_child(stay_btn)
+
+	var menu_btn := Button.new()
+	menu_btn.text = "  📋  Ana Menü"
+	menu_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	menu_btn.position = Vector2(center.x - btn_w / 2.0, by + (btn_h + gap))
+	menu_btn.add_theme_font_size_override("font_size", 20)
+	var ms := StyleBoxFlat.new()
+	ms.bg_color = Color(0.25, 0.2, 0.2)
+	ms.set_corner_radius_all(8)
+	ms.set_border_width_all(1)
+	ms.border_color = Color(0.55, 0.35, 0.35, 0.6)
+	menu_btn.add_theme_stylebox_override("normal", ms)
+	menu_btn.add_theme_stylebox_override("hover", _lobby_btn_hover(ms))
+	menu_btn.pressed.connect(func() -> void:
+		_close_esc_menu()
+		_on_navigation_back())
+	root.add_child(menu_btn)
+
+	var quit_btn := Button.new()
+	quit_btn.text = "  🚪  Oyundan Çık"
+	quit_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	quit_btn.position = Vector2(center.x - btn_w / 2.0, by + 2 * (btn_h + gap))
+	quit_btn.add_theme_font_size_override("font_size", 20)
+	var qs := StyleBoxFlat.new()
+	qs.bg_color = Color(0.35, 0.15, 0.15)
+	qs.set_corner_radius_all(8)
+	qs.set_border_width_all(1)
+	qs.border_color = Color(0.7, 0.3, 0.3, 0.6)
+	quit_btn.add_theme_stylebox_override("normal", qs)
+	quit_btn.add_theme_stylebox_override("hover", _lobby_btn_hover(qs))
+	quit_btn.pressed.connect(func() -> void:
+		_close_esc_menu()
+		get_tree().quit())
+	root.add_child(quit_btn)
+
+func _lobby_btn_hover(base: StyleBoxFlat) -> StyleBoxFlat:
+	var h := base.duplicate() as StyleBoxFlat
+	h.bg_color = Color(h.bg_color.r + 0.12, h.bg_color.g + 0.12, h.bg_color.b + 0.12)
+	return h
+
+func _close_esc_menu() -> void:
+	if _esc_menu and is_instance_valid(_esc_menu):
+		_esc_menu.hide()
+
+# === SYSTEM INTEGRATION ===
+
+func _get_system_references() -> void:
+	# AudioSystem referansı
+	if has_node("/root/AudioSystem"):
+		audio_system = get_node("/root/AudioSystem")
+		print("🔊 AudioSystem: Found")
+	else:
+		print("⚠️ AudioSystem: Not found")
+	
+	# GameData referansı
+	if has_node("/root/GameData"):
+		game_data = get_node("/root/GameData")
+		print("💾 GameData: Found")
+	else:
+		print("⚠️ GameData: Not found")
+
+# === LAYER MANAGEMENT ===
+
+func _create_layers() -> void:
+	# Arka plan katmanı
+	background_layer = Control.new()
+	background_layer.name = "BackgroundLayer"
+	background_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(background_layer)
+	print("🎨 Background layer created")
+	
+	# UI katmanı (CanvasLayer) — lobi UI burada
+	ui_layer = CanvasLayer.new()
+	ui_layer.name = "UILayer"
+	ui_layer.layer = 1
+	add_child(ui_layer)
+	# CanvasLayer içinde tam ekran arka plan (lobi görünsün diye)
+	var vs := get_viewport().get_visible_rect().size
+	var bg_rect := ColorRect.new()
+	bg_rect.name = "LobbyBackground"
+	bg_rect.color = Color(0.08, 0.06, 0.14, 1.0)
+	bg_rect.position = Vector2.ZERO
+	bg_rect.size = vs
+	bg_rect.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	ui_layer.add_child(bg_rect)
+	print("🖥️ UI layer created")
+
+# === LOBBY MOLECULE LOADING ===
+
+func _load_lobby_molecule() -> void:
+	print("🔄 Loading LobbyMolecule...")
+	
+	# Scene dosyasını yükle
+	var lobby_scene_path = "res://src/ui/molecules/lobby_molecule.tscn"
+	
+	if not ResourceLoader.exists(lobby_scene_path):
+		print("❌ LobbyMolecule scene not found: %s" % lobby_scene_path)
+		_create_minimal_lobby()
+		return
+	
+	var lobby_scene = load(lobby_scene_path)
+	if not lobby_scene:
+		print("❌ Failed to load LobbyMolecule scene")
+		_create_minimal_lobby()
+		return
+	
+	# Scene instance oluştur
+	lobby_molecule = lobby_scene.instantiate()
+	lobby_molecule.name = "LobbyMolecule"
+	
+	# UI katmanına ekle (önce ekle ki _ready sonrası boyut geçerli olsun)
+	ui_layer.add_child(lobby_molecule)
+	
+	# Boyut/offset _apply_lobby_molecule_size (deferred) içinde verilecek; anchor burada değiştirilir
+	lobby_molecule.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	lobby_molecule.visible = true
+	
+	# Signal'leri bağla
+	_connect_lobby_signals()
+	
+	# _ready sonrası boyutun kalıcı olması için ertelenmiş atama
+	call_deferred("_apply_lobby_molecule_size")
+	
+	print("✅ LobbyMolecule loaded successfully")
+
+func _apply_lobby_molecule_size() -> void:
+	if not is_instance_valid(lobby_molecule):
+		return
+	var vs := get_viewport().get_visible_rect().size
+	lobby_molecule.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	lobby_molecule.position = Vector2.ZERO
+	lobby_molecule.size = vs
+	lobby_molecule.custom_minimum_size = vs
+	lobby_molecule.offset_left = 0
+	lobby_molecule.offset_top = 0
+	lobby_molecule.offset_right = vs.x
+	lobby_molecule.offset_bottom = vs.y
+	lobby_molecule.visible = true
+
+func _connect_lobby_signals() -> void:
+	if not lobby_molecule:
+		return
+	
+	# Game start signal
+	if lobby_molecule.has_signal("game_start_requested"):
+		lobby_molecule.game_start_requested.connect(_on_game_start_requested)
+	else:
+		print("⚠️ LobbyMolecule: game_start_requested signal not found")
+	
+	# Navigation back signal
+	if lobby_molecule.has_signal("navigation_back"):
+		lobby_molecule.navigation_back.connect(_on_navigation_back)
+	else:
+		print("⚠️ LobbyMolecule: navigation_back signal not found")
+	
+	# Purchase made signal
+	if lobby_molecule.has_signal("purchase_made"):
+		lobby_molecule.purchase_made.connect(_on_purchase_made)
+	else:
+		print("⚠️ LobbyMolecule: purchase_made signal not found")
+	
+	# Yedek: OYUNA BAŞLA butonuna doğrudan bağlan (molekül sinyali atlarsa çalışsın)
+	call_deferred("_connect_play_button_fallback")
+
+func _connect_play_button_fallback() -> void:
+	var play_btn = lobby_molecule.get_node_or_null("ContentManager/PlayButton") if lobby_molecule else null
+	if play_btn and not play_btn.is_connected("pressed", _on_play_button_direct):
+		play_btn.pressed.connect(_on_play_button_direct)
+		print("🔗 Lobby: Play button direct fallback connected")
+
+func _on_play_button_direct() -> void:
+	# Seçimleri molekülden al veya varsayılan kullan
+	var c := "male_soldier"
+	var w := "machinegun"
+	var f := "turkey"
+	if lobby_molecule and lobby_molecule.has_method("get_player_data"):
+		var pd = lobby_molecule.get_player_data()
+		c = pd.get("selected_character", c)
+		w = pd.get("selected_weapon", w)
+		f = pd.get("selected_flag", f)
+	_on_game_start_requested(c, w, f)
+
+# === GAME DATA INTEGRATION ===
+
+func _load_game_data() -> void:
+	print("📊 Loading game data...")
+	
+	if not game_data:
+		print("⚠️ GameData not available, using defaults")
+		_set_default_game_data()
+		return
+	
+	# XP 0 veya düşükse varsayılana çek ve kaydet; lobiye giderken en az varsayılan kullan
+	var xp_val: int = maxi(int(game_data.xp_coins), game_data.DEFAULT_STARTING_XP)
+	if game_data.xp_coins <= 0:
+		game_data.xp_coins = xp_val
+		game_data.save_data()
+	# Sahip olunan listeler boşsa varsayılan ver (ilk açılışta SEÇ görünsün)
+	var owned_chars: Array = game_data.owned_characters.duplicate()
+	if owned_chars.is_empty():
+		owned_chars = ["male_soldier"]
+	var owned_weps: Dictionary = game_data.owned_weapons.duplicate()
+	if owned_weps.is_empty():
+		owned_weps = {"machinegun": 1}
+	var owned_flgs: Array = game_data.owned_flags.duplicate()
+	if owned_flgs.is_empty():
+		owned_flgs = ["turkey"]
+	# GameData'den oyuncu verilerini al
+	var player_data = {
+		"xp": xp_val,
+		"owned_characters": owned_chars,
+		"selected_character": game_data.selected_character,
+		"owned_weapons": owned_weps,
+		"selected_weapon": game_data.equipped_weapon,
+		"owned_flags": owned_flgs,
+		"selected_flag": game_data.equipped_flag,
+		"stats": {
+			"best_wave": game_data.best_wave,
+			"total_kills": game_data.total_kills,
+			"total_games": game_data.total_games,
+			"total_xp_earned": game_data.total_xp_earned,
+			"total_play_time": game_data.total_play_time,
+			"accuracy": game_data.accuracy,
+			"survival_rate": game_data.survival_rate
+		}
+	}
+	
+	# LobbyMolecule'e verileri yükle
+	if lobby_molecule and lobby_molecule.has_method("set_player_data"):
+		lobby_molecule.set_player_data(player_data)
+		print("✅ Game data loaded into LobbyMolecule")
+	else:
+		print("⚠️ LobbyMolecule.set_player_data method not found")
+
+func _set_default_game_data() -> void:
+	# Varsayılan oyuncu verileri (GameData yoksa)
+	var default_data = {
+		"xp": 10000,
+		"owned_characters": ["male_soldier"],
+		"selected_character": "male_soldier",
+		"owned_weapons": {"machinegun": 1},
+		"selected_weapon": "machinegun",
+		"owned_flags": ["turkey"],
+		"selected_flag": "turkey",
+		"stats": {
+			"best_wave": 0,
+			"total_kills": 0,
+			"total_games": 0,
+			"total_xp_earned": 0,
+			"total_play_time": 0,
+			"accuracy": 0.0,
+			"survival_rate": 0.0
+		}
+	}
+	
+	if lobby_molecule and lobby_molecule.has_method("set_player_data"):
+		lobby_molecule.set_player_data(default_data)
+		print("✅ Default game data set")
+
+# === MINIMAL LOBBY (FALLBACK) ===
+
+func _create_minimal_lobby() -> void:
+	print("🛠️ Creating minimal lobby (fallback)...")
+	
+	var minimal_lobby = Control.new()
+	minimal_lobby.name = "MinimalLobby"
+	minimal_lobby.size = VIEWPORT_SIZE
+	
+	# Başlık
+	var title = Label.new()
+	title.text = "🏢 LOBBİ"
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(0.9, 0.8, 1.0))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hb.add_child(title)
+	title.position = Vector2(VIEWPORT_SIZE.x / 2 - 100, 100)
+	minimal_lobby.add_child(title)
+	
+	# Oyun başlat butonu
+	var play_btn = _create_button(
+		"🎮 OYUNA BAŞLA",
+		Vector2(VIEWPORT_SIZE.x / 2 - 200, 300),
+		Vector2(400, 80),
+		Color(0.12, 0.5, 0.12),
+		Color(0.4, 0.9, 0.4),
+		_on_minimal_play_pressed
+	)
+	minimal_lobby.add_child(play_btn)
+	
+	# Geri butonu
+	var back_btn = _create_button(
+		"◀ MENÜYE DÖN",
+		Vector2(VIEWPORT_SIZE.x / 2 - 150, 400),
+		Vector2(300, 60),
+		Color(0.15, 0.1, 0.25),
+		Color(0.3, 0.2, 0.5),
+		_on_navigation_back
+	)
+	minimal_lobby.add_child(back_btn)
+	
+	# UI katmanına ekle
+	ui_layer.add_child(minimal_lobby)
+	lobby_molecule = minimal_lobby
+	
+	print("✅ Minimal lobby created")
 
-	# XP label
-	_coin_label = Label.new()
-	_coin_label.text = "💰 0 XP"
-	_coin_label.add_theme_font_size_override("font_size", 18)
-	_coin_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-	_coin_label.custom_minimum_size = Vector2(130, 70)
-	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_coin_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hb.add_child(_coin_label)
+func _create_button(text: String, position: Vector2, size: Vector2, 
+				   bg_color: Color, border_color: Color, callback: Callable) -> Button:
+	var button = Button.new()
+	button.text = text
+	button.position = position
+	button.custom_minimum_size = size
+	button.add_theme_font_size_override("font_size", 24 if size.y > 70 else 20)
+	button.add_theme_color_override("font_color", Color(0.95, 1.0, 0.95))
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = bg_color
+	style.set_corner_radius_all(10)
+	style.border_color = border_color
+	style.set_border_width_all(2)
+	button.add_theme_stylebox_override("normal", style)
+	
+	var hover_style = StyleBoxFlat.new()
+	hover_style.bg_color = Color(bg_color.r + 0.1, bg_color.g + 0.1, bg_color.b + 0.1)
+	hover_style.set_corner_radius_all(10)
+	button.add_theme_stylebox_override("hover", hover_style)
+	
+	button.pressed.connect(callback)
+	return button
 
+# === BACKGROUND RENDERING ===
 
-func _build_char_preview() -> void:
-	_char_preview = Control.new()
-	_char_preview.position = Vector2(VP.x / 2.0 - 120.0, 70.0)
-	_char_preview.size = Vector2(240.0, 210.0)
-	_root.add_child(_char_preview)
+func _draw() -> void:
+	# Sadece background_layer üzerine çiz
+	if background_layer:
+		_draw_background()
 
-	# Karakter isim
-	_char_name_lbl = Label.new()
-	_char_name_lbl.text = "SURVIVOR BIG BOSS"
-	_char_name_lbl.add_theme_font_size_override("font_size", 20)
-	_char_name_lbl.add_theme_color_override("font_color", Color(0.55, 0.78, 1.0))
-	_char_name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_char_name_lbl.position = Vector2(0, 170)
-	_char_name_lbl.size = Vector2(240, 26)
-	_char_preview.add_child(_char_name_lbl)
+func _draw_background() -> void:
+	# Koyu uzay arka planı
+	draw_rect(Rect2(Vector2.ZERO, VIEWPORT_SIZE), Color(0.05, 0.04, 0.10))
+	
+	# Yıldızlar
+	_draw_stars()
+	
+	# Nebula efektleri
+	_draw_nebula()
+	
+	# Izgara deseni
+	_draw_grid()
 
-	# Bayrak isim
-	_flag_name_lbl = Label.new()
-	_flag_name_lbl.text = "🇹🇷 Türkiye"
-	_flag_name_lbl.add_theme_font_size_override("font_size", 17)
-	_flag_name_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	_flag_name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_flag_name_lbl.position = Vector2(0, 192)
-	_flag_name_lbl.size = Vector2(240, 24)
-	_char_preview.add_child(_flag_name_lbl)
+func _draw_stars() -> void:
+	randomize()
+	for i in 100:
+		var x = randf() * VIEWPORT_SIZE.x
+		var y = randf() * VIEWPORT_SIZE.y
+		var size = randf_range(0.5, 2.0)
+		var brightness = randf_range(0.3, 0.8)
+		var pulse = sin(_time * 2.0 + i) * 0.3 + 0.7
+		
+		draw_circle(Vector2(x, y), size, Color(1.0, 1.0, 1.0, brightness * pulse))
 
-
-func _refresh_labels() -> void:
-	if is_instance_valid(_char_name_lbl):
-		_char_name_lbl.text = "SURVIVOR BIG BOSS"
-	if is_instance_valid(_flag_name_lbl):
-		var fid2 := GameData.equipped_flag if GameData.equipped_flag in GameData.FLAGS else "turkey"
-		var fd: Dictionary = GameData.FLAGS[fid2]
-		_flag_name_lbl.text = str(fd.get("emoji", "🏳")) + " " + str(fd.get("name", ""))
-
-
-func _build_tab_bar() -> void:
-	var bar := HBoxContainer.new()
-	bar.position = Vector2(0, 365.0)
-	bar.size = Vector2(VP.x, 54.0)
-	bar.add_theme_constant_override("separation", 0)
-	_root.add_child(bar)
-
-	var tab_data := [
-		["🌍  BAYRAK", Tab.FLAGS],
-		["📊  İSTAT",  Tab.STATS],
+func _draw_nebula() -> void:
+	var nebula_colors = [
+		Color(0.3, 0.1, 0.5, 0.05),
+		Color(0.1, 0.2, 0.6, 0.04),
+		Color(0.5, 0.1, 0.3, 0.03)
 	]
-	for td in tab_data:
-		var btn := Button.new()
-		btn.text = str(td[0])
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.custom_minimum_size = Vector2(0, 58)
-		btn.add_theme_font_size_override("font_size", 18)
-		btn.pressed.connect(_show_tab.bind(int(td[1])))
-		_tab_btns.append(btn)
-		bar.add_child(btn)
+	
+	for i in 3:
+		var center_x = VIEWPORT_SIZE.x * 0.5 + sin(_time * 0.3 + i) * 100
+		var center_y = VIEWPORT_SIZE.y * 0.3 + cos(_time * 0.4 + i) * 80
+		var radius = 150 + sin(_time * 0.5 + i) * 30
+		
+		draw_circle(Vector2(center_x, center_y), radius, nebula_colors[i])
 
+func _draw_grid() -> void:
+	var grid_color = Color(0.2, 0.3, 0.6, 0.05)
+	var grid_size = 40
+	
+	for x in range(0, int(VIEWPORT_SIZE.x) + 1, grid_size):
+		draw_line(Vector2(x, 0), Vector2(x, VIEWPORT_SIZE.y), grid_color, 1.0)
+	
+	for y in range(0, int(VIEWPORT_SIZE.y) + 1, grid_size):
+		draw_line(Vector2(0, y), Vector2(VIEWPORT_SIZE.x, y), grid_color, 1.0)
 
-func _build_content_area() -> void:
-	_content = Control.new()
-	_content.position = Vector2(0, 419.0)
-	_content.size = Vector2(VP.x, 820.0)
-	_content.clip_children = Control.CLIP_CHILDREN_ONLY
-	_root.add_child(_content)
+# === EVENT HANDLERS ===
 
+func _on_game_start_requested(character_id: String, weapon_id: String, flag_id: String) -> void:
+	if _is_transitioning:
+		return
+	_is_transitioning = true
+	print("🎮 Lobby: game_start_requested received, transitioning to game...")
+	print("🎮 Game starting with:")
+	print("   Character: %s" % character_id)
+	print("   Weapon: %s" % weapon_id)
+	print("   Flag: %s" % flag_id)
+	
+	# Oyun verilerini kaydet
+	_save_game_data()
+	
+	# Ses efekti
+	_play_ui_sound("click")
+	
+	# Geçiş efekti
+	var tween = create_tween()
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(self, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(_transition_to_game)
 
-func _build_play_button() -> void:
-	var play := Button.new()
-	play.text = "▶  OYUNA BAŞLA"
-	play.size = Vector2(420, 72)
-	play.position = Vector2(VP.x / 2.0 - 210.0, 287.0)
-	play.add_theme_font_size_override("font_size", 28)
-	play.add_theme_color_override("font_color", Color(0.92, 1.0, 0.92))
-	var sty := StyleBoxFlat.new()
-	sty.bg_color = Color(0.14, 0.52, 0.14)
-	sty.set_corner_radius_all(12)
-	sty.border_color = Color(0.35, 0.88, 0.35, 0.65)
-	sty.set_border_width_all(2)
-	play.add_theme_stylebox_override("normal", sty)
-	var sty_h := StyleBoxFlat.new()
-	sty_h.bg_color = Color(0.22, 0.70, 0.22)
-	sty_h.set_corner_radius_all(12)
-	play.add_theme_stylebox_override("hover", sty_h)
-	play.pressed.connect(_start_game)
-	_root.add_child(play)
+func _on_navigation_back() -> void:
+	if _is_transitioning:
+		return
+	
+	_is_transitioning = true
+	print("🔙 Navigating back to menu")
+	
+	# Oyun verilerini kaydet
+	_save_game_data()
+	
+	# Ses efekti
+	_play_ui_sound("click")
+	
+	# Geçiş efekti
+	var tween = create_tween()
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(self, "modulate:a", 0.0, 0.3)
+	tween.tween_callback(_transition_to_menu)
 
+func _on_purchase_made(item_type: String, item_id: String, cost: int) -> void:
+	print("💰 Purchase made: %s - %s (%d XP)" % [item_type, item_id, cost])
+	
+	# Ses efekti
+	_play_ui_sound("click")
+	
+	# Oyun verilerini kaydet
+	_save_game_data()
 
-# ══════════════════════════════════════════════════════════════
-#  TAB SİSTEMİ
-# ══════════════════════════════════════════════════════════════
-func _show_tab(tab: int) -> void:
-	_active_tab = tab
-	_rebuild_tab()
-	_update_tab_buttons()
+func _on_minimal_play_pressed() -> void:
+	# Minimal lobi için oyun başlatma
+	_on_game_start_requested("male_soldier", "machinegun", "turkey")
 
+# === TRANSITION METHODS ===
 
-func _update_tab_buttons() -> void:
-	for i in _tab_btns.size():
-		var is_active := i == _active_tab
-		var sty := StyleBoxFlat.new()
-		sty.bg_color = Color(0.28, 0.12, 0.58) if is_active else Color(0.08, 0.06, 0.18)
-		sty.border_color = Color(0.65, 0.4, 1.0, 0.85) if is_active else Color(0.3, 0.2, 0.5, 0.35)
-		sty.set_border_width_all(0)
-		sty.border_width_bottom = 3
-		_tab_btns[i].add_theme_stylebox_override("normal", sty)
-		var sty_h := StyleBoxFlat.new()
-		sty_h.bg_color = Color(0.22, 0.10, 0.45)
-		sty_h.border_color = Color(0.65, 0.4, 1.0, 0.6)
-		sty_h.set_border_width_all(0)
-		sty_h.border_width_bottom = 3
-		_tab_btns[i].add_theme_stylebox_override("hover", sty_h)
-		_tab_btns[i].add_theme_color_override("font_color",
-			Color(0.9, 0.75, 1.0) if is_active else Color(0.65, 0.60, 0.80))
+func _transition_to_game() -> void:
+	print("🔄 Transitioning to game scene...")
+	get_tree().change_scene_to_file("res://main.tscn")
+	_is_transitioning = false
 
+func _transition_to_menu() -> void:
+	print("🔄 Transitioning to menu scene...")
+	get_tree().change_scene_to_file("res://menu.tscn")
+	_is_transitioning = false
 
-func _rebuild_tab() -> void:
-	for c in _content.get_children():
-		c.queue_free()
-	match _active_tab:
-		Tab.FLAGS: _build_flags_tab()
-		Tab.STATS: _build_stats_tab()
+# === UTILITY METHODS ===
 
+func _play_ui_sound(sound_name: String) -> void:
+	var played = false
+	if audio_system and audio_system.has_method("play_ui_sound"):
+		played = audio_system.play_ui_sound(sound_name)
+	# Fallback: modüler sistem çalmadıysa doğrudan bir kez çal (test/feedback için)
+	if not played:
+		var path := "res://assets/audio/ui/%s.wav" % sound_name
+		if not ResourceLoader.exists(path):
+			path = "res://assets/audio/ui/click.wav"
+		if ResourceLoader.exists(path):
+			var stream = load(path) as AudioStream
+			if stream:
+				var one_shot = AudioStreamPlayer.new()
+				one_shot.stream = stream
+				var bus_name := "UI"
+				if AudioServer.get_bus_index(bus_name) < 0:
+					bus_name = "Master"
+				one_shot.bus = bus_name
+				get_tree().root.add_child(one_shot)
+				one_shot.finished.connect(one_shot.queue_free)
+				one_shot.play()
+				played = true
+		if not played:
+			print("🔇 UI sound '%s': could not play (AudioSystem or fallback failed)" % sound_name)
 
-# ── BAYRAK TAB ────────────────────────────────────────────────
-func _build_flags_tab() -> void:
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2.ZERO
-	scroll.size = Vector2(VP.x, 820.0)
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_content.add_child(scroll)
-
-	var margin := MarginContainer.new()
-	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	scroll.add_child(margin)
-
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 12)
-	grid.add_theme_constant_override("v_separation", 12)
-	margin.add_child(grid)
-
-	for flag_id in GameData.FLAGS.keys():
-		grid.add_child(_make_flag_card(flag_id))
-
-
-func _make_flag_card(flag_id: String) -> Control:
-	var fd: Dictionary = GameData.FLAGS[flag_id]
-	var owned   := flag_id in GameData.owned_flags
-	var equipped := GameData.equipped_flag == flag_id
-	var cost     := int(fd.get("cost", 0))
-
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 155)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var sty := StyleBoxFlat.new()
-	sty.bg_color = Color(0.55, 0.3, 0.9, 0.22) if equipped else Color(0.08, 0.06, 0.18, 0.90)
-	sty.border_color = Color(1.0, 0.85, 0.2, 0.9) if equipped else (Color(0.3, 0.6, 0.3, 0.7) if owned else Color(0.25, 0.2, 0.4, 0.5))
-	sty.set_border_width_all(2)
-	sty.set_corner_radius_all(10)
-	card.add_theme_stylebox_override("panel", sty)
-
-	var vb := VBoxContainer.new()
-	vb.set_anchors_preset(Control.PRESET_FULL_RECT)
-	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.add_theme_constant_override("separation", 4)
-	card.add_child(vb)
-
-	# Emoji + Code badge
-	var badge_hb := HBoxContainer.new()
-	badge_hb.alignment = BoxContainer.ALIGNMENT_CENTER
-	badge_hb.add_theme_constant_override("separation", 6)
-	vb.add_child(badge_hb)
-
-	var emoji_lbl := Label.new()
-	emoji_lbl.text = str(fd.get("emoji", "🏳️"))
-	emoji_lbl.add_theme_font_size_override("font_size", 36)
-	emoji_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge_hb.add_child(emoji_lbl)
-
-	var code_panel := PanelContainer.new()
-	var code_sty := StyleBoxFlat.new()
-	code_sty.bg_color = Color(0.18, 0.12, 0.35)
-	code_sty.set_corner_radius_all(5)
-	code_panel.add_theme_stylebox_override("panel", code_sty)
-	badge_hb.add_child(code_panel)
-
-	var code_lbl := Label.new()
-	code_lbl.text = str(fd.get("code", "??"))
-	code_lbl.add_theme_font_size_override("font_size", 18)
-	code_lbl.add_theme_color_override("font_color", Color(0.95, 0.88, 1.0))
-	code_panel.add_child(code_lbl)
-
-	var name_lbl := Label.new()
-	name_lbl.text = str(fd["name"])
-	name_lbl.add_theme_font_size_override("font_size", 13)
-	name_lbl.add_theme_color_override("font_color", Color(0.85, 0.85, 0.95))
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vb.add_child(name_lbl)
-
-	if equipped:
-		var lbl := Label.new()
-		lbl.text = "✔ SEÇİLİ"
-		lbl.add_theme_font_size_override("font_size", 12)
-		lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vb.add_child(lbl)
-	elif owned:
-		var eq_btn := Button.new()
-		eq_btn.text = "Seç"
-		eq_btn.add_theme_font_size_override("font_size", 13)
-		eq_btn.pressed.connect(_on_select_flag.bind(flag_id))
-		_style_btn(eq_btn, Color(0.2, 0.5, 0.2))
-		vb.add_child(eq_btn)
+func _save_game_data() -> void:
+	# Lobideki seçim ve satın almaları GameData'ya yaz (yoksa bir sonraki girişte kaybolur)
+	if lobby_molecule and lobby_molecule.has_method("get_player_data") and game_data:
+		var pd = lobby_molecule.get_player_data()
+		game_data.xp_coins = pd.get("xp", game_data.xp_coins)
+		game_data.owned_characters = pd.get("owned_characters", game_data.owned_characters)
+		game_data.selected_character = pd.get("selected_character", game_data.selected_character)
+		game_data.owned_weapons = pd.get("owned_weapons", game_data.owned_weapons)
+		game_data.equipped_weapon = pd.get("selected_weapon", game_data.equipped_weapon)
+		game_data.owned_flags = pd.get("owned_flags", game_data.owned_flags)
+		game_data.equipped_flag = pd.get("selected_flag", game_data.equipped_flag)
+	if game_data and game_data.has_method("save_data"):
+		game_data.save_data()
+		print("💾 Game data saved")
 	else:
-		var buy_btn := Button.new()
-		buy_btn.text = "%d XP" % cost
-		buy_btn.add_theme_font_size_override("font_size", 13)
-		buy_btn.pressed.connect(_on_buy_flag.bind(flag_id))
-		_style_btn(buy_btn, Color(0.6, 0.4, 0.1))
-		vb.add_child(buy_btn)
+		print("⚠️ GameData.save_data method not available")
 
-	return card
+# === DEBUG ===
 
-
-# ── STATS TAB ─────────────────────────────────────────────────
-func _build_stats_tab() -> void:
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2.ZERO
-	scroll.size = Vector2(VP.x, 820.0)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_content.add_child(scroll)
-
-	var vb := VBoxContainer.new()
-	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vb.add_theme_constant_override("separation", 16)
-	scroll.add_child(vb)
-
-	var fl_name := "-"
-	if GameData.equipped_flag in GameData.FLAGS:
-		var fd2: Dictionary = GameData.FLAGS[GameData.equipped_flag]
-		fl_name = str(fd2.get("name", "-"))
-
-	var stats := [
-		["🏆 En İyi Dalga",   str(GameData.best_wave)],
-		["💀 Toplam Öldürme", str(GameData.total_kills)],
-		["🎮 Toplam Oyun",    str(GameData.total_games)],
-		["⭐ Toplam XP",      str(GameData.total_xp_earned)],
-		["💰 Mevcut XP",      str(GameData.xp_coins)],
-		["🌍 Bayrak",         fl_name],
-	]
-	for s in stats:
-		vb.add_child(_make_stat_row(str(s[0]), str(s[1])))
-
-
-func _make_stat_row(label: String, value: String) -> Control:
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 64)
-	var sty := StyleBoxFlat.new()
-	sty.bg_color = Color(0.1, 0.07, 0.22, 0.88)
-	sty.set_corner_radius_all(8)
-	card.add_theme_stylebox_override("panel", sty)
-
-	var hb := HBoxContainer.new()
-	hb.set_anchors_preset(Control.PRESET_FULL_RECT)
-	card.add_child(hb)
-
-	var lbl := Label.new()
-	lbl.text = label
-	lbl.add_theme_font_size_override("font_size", 19)
-	lbl.add_theme_color_override("font_color", Color(0.75, 0.75, 0.9))
-	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hb.add_child(lbl)
-
-	var val_lbl := Label.new()
-	val_lbl.text = value
-	val_lbl.add_theme_font_size_override("font_size", 22)
-	val_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-	val_lbl.custom_minimum_size = Vector2(150, 0)
-	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	val_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hb.add_child(val_lbl)
-
-	return card
-
-
-# ── Yardımcılar ────────────────────────────────────────────────
-func _style_btn(btn: Button, col: Color) -> void:
-	var sty := StyleBoxFlat.new()
-	sty.bg_color = col
-	sty.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("normal", sty)
-	var sty_h := StyleBoxFlat.new()
-	sty_h.bg_color = Color(col.r + 0.1, col.g + 0.1, col.b + 0.1)
-	sty_h.set_corner_radius_all(6)
-	btn.add_theme_stylebox_override("hover", sty_h)
-
-
-func _flash_not_enough() -> void:
-	var flash := ColorRect.new()
-	flash.color = Color(0.9, 0.1, 0.1, 0.0)
-	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_root.add_child(flash)
-	var tw := create_tween()
-	tw.tween_property(flash, "color:a", 0.28, 0.15)
-	tw.tween_property(flash, "color:a", 0.0, 0.4)
-	tw.tween_callback(flash.queue_free)
-	# Yetersiz XP mesajı
-	var msg := Label.new()
-	msg.text = "❌ Yeterli XP yok!"
-	msg.add_theme_font_size_override("font_size", 26)
-	msg.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-	msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	msg.position = Vector2(0, VP.y / 2.0 - 40)
-	msg.size = Vector2(VP.x, 50)
-	_root.add_child(msg)
-	var tw2 := create_tween()
-	tw2.tween_interval(1.0)
-	tw2.tween_property(msg, "modulate:a", 0.0, 0.5)
-	tw2.tween_callback(msg.queue_free)
-
-
-func _start_game() -> void:
-	var tw := create_tween()
-	tw.tween_property(self, "modulate:a", 0.0, 0.3)
-	tw.tween_callback(func(): get_tree().change_scene_to_file("res://main.tscn"))
-
-
-# ── Buton yardımcı fonksiyonları (.bind ile kullanılır) ────────
-func _on_select_flag(flag_id: String) -> void:
-	GameData.equipped_flag = flag_id
-	GameData.save_data()
-	_refresh_labels()
-	_rebuild_tab()
-
-
-func _on_buy_flag(flag_id: String) -> void:
-	if GameData.buy_flag(flag_id):
-		GameData.equipped_flag = flag_id
-		GameData.save_data()
-		_refresh_labels()
-		_rebuild_tab()
-	else:
-		_flash_not_enough()
+func print_debug_info() -> void:
+	print("=== Lobby Scene Debug ===")
+	print("Initialized: %s" % str(_is_initialized))
+	print("Transitioning: %s" % str(_is_transitioning))
+	print("Viewport Size: %s" % str(VIEWPORT_SIZE))
+	print("Lobby Molecule: %s" % ("Loaded" if lobby_molecule else "Not Loaded"))
+	print("Background Layer: %s" % ("Loaded" if background_layer else "Not Loaded"))
+	print("UI Layer: %s" % ("Loaded" if ui_layer else "Not Loaded"))
+	print("Audio System: %s" % ("Available" if audio_system else "Not Available"))
+	print("Game Data: %s" % ("Available" if game_data else "Not Available"))
