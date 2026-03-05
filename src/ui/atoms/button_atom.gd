@@ -50,8 +50,8 @@ extends Control
 # === NODES ===
 @onready var button: Button = $Button
 @onready var label: Label = $Button/Label
-@onready var hover_tween: Tween = $HoverTween
-@onready var press_tween: Tween = $PressTween
+var hover_tween: Tween
+var press_tween: Tween
 
 # === STATE ===
 var is_hovered: bool = false
@@ -177,7 +177,17 @@ func _load_config() -> void:
 		push_warning("ButtonAtom config not found: %s" % config_id)
 		return
 	
-	# ... existing code ...
+	current_style = config.duplicate()
+	_load_style_config()
+
+func _load_style_config() -> void:
+	if not ConfigManager.is_available():
+		return
+	var style_config = ConfigManager.get_instance().get_config_value("ui.json", "styles." + button_style, {})
+	if not style_config.is_empty():
+		current_style.merge(style_config, true)
+	if is_inside_tree():
+		_update_state()
 
 # === STATE MANAGEMENT ===
 

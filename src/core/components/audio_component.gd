@@ -15,6 +15,7 @@ enum AudioEvent {
 }
 
 # === PROPERTIES ===
+var entity_id: String = ""  # entity.entity_id'den alınır
 var audio_system: AudioSystemWrapper = null  # Yeni wrapper sistemi
 var entity_position: Vector3 = Vector3.ZERO
 var audio_events: Dictionary = {}  # AudioEvent -> sound_name mapping
@@ -33,6 +34,7 @@ signal spatial_audio_toggled(enabled: bool)
 # === LIFECYCLE ===
 
 func _ready() -> void:
+	entity_id = entity.entity_id if entity and "entity_id" in entity else "unknown"
 	print("AudioComponent initializing for entity: %s" % entity_id)
 	
 	# AudioSystem'i bul (yeni wrapper)
@@ -89,16 +91,16 @@ func _setup_default_audio_events() -> void:
 	}
 
 func _setup_event_listeners() -> void:
-	# Entity event'lerini dinle
+	# Entity event'lerini dinle (EventBus Event objesi gönderir, .data kullan)
 	if EventBus.is_available():
-		EventBus.connect_static("entity_damaged", _on_entity_damaged)
-		EventBus.connect_static("entity_died", _on_entity_died)
-		EventBus.connect_static("item_picked_up", _on_item_picked_up)
-		EventBus.connect_static("entity_attacked", _on_entity_attacked)
-		EventBus.connect_static("entity_spawned", _on_entity_spawned)
-		EventBus.connect_static("entity_level_up", _on_entity_level_up)
-		EventBus.connect_static("entity_healed", _on_entity_healed)
-		EventBus.connect_static("entity_interacted", _on_entity_interacted)
+		EventBus.subscribe_static("entity_damaged", func(e): _on_entity_damaged(e.data))
+		EventBus.subscribe_static("entity_died", func(e): _on_entity_died(e.data))
+		EventBus.subscribe_static("item_picked_up", func(e): _on_item_picked_up(e.data))
+		EventBus.subscribe_static("entity_attacked", func(e): _on_entity_attacked(e.data))
+		EventBus.subscribe_static("entity_spawned", func(e): _on_entity_spawned(e.data))
+		EventBus.subscribe_static("entity_level_up", func(e): _on_entity_level_up(e.data))
+		EventBus.subscribe_static("entity_healed", func(e): _on_entity_healed(e.data))
+		EventBus.subscribe_static("entity_interacted", func(e): _on_entity_interacted(e.data))
 
 # === PUBLIC API - AUDIO PLAYBACK ===
 

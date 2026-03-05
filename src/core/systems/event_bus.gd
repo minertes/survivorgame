@@ -328,6 +328,8 @@ const ITEM_USED = "item_used"
 const INVENTORY_CHANGED = "inventory_changed"
 const WEAPON_CHANGED = "weapon_changed"
 const WEAPON_UPGRADED = "weapon_upgraded"
+const WEAPON_FIRED = "weapon_fired"
+const PLAYER_STATS_CHANGED = "player_stats_changed"
 
 # UI Events
 const UI_SHOW = "ui_show"

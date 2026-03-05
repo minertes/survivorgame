@@ -17,11 +17,17 @@ var _time := 0.0
 var _is_initialized := false
 var _is_transitioning := false
 var _esc_menu: Control = null  # ESC ile açılan 3'lü buton menüsü
+# Faz 7 – Oyun modu seçimi (Normal, Sonsuz, Boss Rush, Günlük)
+var _selected_game_mode: String = GameState.MODE_NORMAL
+var _mode_selector_container: Control = null
+# Tema seçimi (Background.set_theme_by_id ile uyumlu)
+var _selected_theme_id: String = "default"
+var _theme_selector_container: Control = null
 
 # === LIFECYCLE ===
 
 func _ready() -> void:
-	print("🚀 Lobby Scene: Initializing...")
+	Log.info("Lobby: _ready started")
 	
 	# Sistem referanslarını al
 	_get_system_references()
@@ -32,11 +38,30 @@ func _ready() -> void:
 	# LobbyMolecule'ü yükle
 	_load_lobby_molecule()
 	
+	# Tema/Mod/Senkronize butonları LobbyMolecule ÜSTÜNE ekle (tıklanabilir olsun)
+	var vs := get_viewport().get_visible_rect().size
+	_create_mode_selector(vs)
+	_create_theme_selector(vs)
+	_create_sync_button(vs)
+	
 	# Oyun verilerini yükle
 	_load_game_data()
 	
+	# Bulut: pull sonucunda apply (senkronize et butonu için)
+	if has_node("/root/BackendService"):
+		var backend = get_node("/root/BackendService")
+		if backend.has_signal("cloud_save_pulled"):
+			backend.cloud_save_pulled.connect(_on_cloud_save_pulled)
+	
 	_is_initialized = true
-	print("✅ Lobby Scene: Initialized successfully")
+	Log.info("Lobby: initialized successfully")
+
+
+func _on_cloud_save_pulled(success: bool, data: Dictionary, _err: String) -> void:
+	if success and data.size() > 0 and has_node("/root/GameData"):
+		GameData.apply_cloud_data(data)
+		_load_game_data()
+		Log.info("Lobby: cloud save applied")
 
 func _process(delta: float) -> void:
 	_time += delta
@@ -162,16 +187,16 @@ func _get_system_references() -> void:
 	# AudioSystem referansı
 	if has_node("/root/AudioSystem"):
 		audio_system = get_node("/root/AudioSystem")
-		print("🔊 AudioSystem: Found")
+		Log.debug("Lobby: AudioSystem found")
 	else:
-		print("⚠️ AudioSystem: Not found")
+		Log.warn("Lobby: AudioSystem not found")
 	
 	# GameData referansı
 	if has_node("/root/GameData"):
 		game_data = get_node("/root/GameData")
-		print("💾 GameData: Found")
+		Log.debug("Lobby: GameData found")
 	else:
-		print("⚠️ GameData: Not found")
+		Log.warn("Lobby: GameData not found")
 
 # === LAYER MANAGEMENT ===
 
@@ -181,7 +206,7 @@ func _create_layers() -> void:
 	background_layer.name = "BackgroundLayer"
 	background_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(background_layer)
-	print("🎨 Background layer created")
+	Log.debug("Lobby: background layer created")
 	
 	# UI katmanı (CanvasLayer) — lobi UI burada
 	ui_layer = CanvasLayer.new()
@@ -197,24 +222,138 @@ func _create_layers() -> void:
 	bg_rect.size = vs
 	bg_rect.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	ui_layer.add_child(bg_rect)
-	print("🖥️ UI layer created")
+	# NOT: Tema/Mod butonları _load_lobby_molecule SONRASINDA eklenmeli (üstte görünsün, tıklanabilsin)
+	Log.debug("Lobby: UI layer created")
+
+
+func _create_theme_selector(vs: Vector2) -> void:
+	# Mezarlık, Orman, Çöl, Cehennem (Background THEME_IDS ile uyumlu)
+	var themes := [
+		["default", "Mezarlık"],
+		["forest", "Orman"],
+		["desert", "Çöl"],
+		["hell", "Cehennem"]
+	]
+	var lbl := Label.new()
+	lbl.text = "Tema:"
+	lbl.position = Vector2(20, vs.y - 228)
+	lbl.add_theme_font_size_override("font_size", 15)
+	lbl.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
+	ui_layer.add_child(lbl)
+	_theme_selector_container = HBoxContainer.new()
+	_theme_selector_container.name = "ThemeSelector"
+	_theme_selector_container.position = Vector2(90, vs.y - 232)
+	_theme_selector_container.size = Vector2(vs.x - 110, 40)
+	_theme_selector_container.add_theme_constant_override("separation", 8)
+	ui_layer.add_child(_theme_selector_container)
+	for t in themes:
+		var btn := Button.new()
+		btn.text = t[1]
+		btn.custom_minimum_size = Vector2(92, 36)
+		btn.toggle_mode = true
+		btn.button_pressed = (t[0] == _selected_theme_id)
+		btn.add_theme_font_size_override("font_size", 14)
+		var bs := StyleBoxFlat.new()
+		bs.bg_color = Color(0.12, 0.14, 0.28)
+		bs.set_corner_radius_all(10)
+		bs.border_color = Color(0.35, 0.4, 0.6, 0.8)
+		bs.set_border_width_all(1)
+		btn.add_theme_stylebox_override("normal", bs)
+		btn.pressed.connect(_on_theme_selected.bind(t[0], btn))
+		_theme_selector_container.add_child(btn)
+		if t[0] == _selected_theme_id:
+			btn.add_theme_color_override("font_color", Color(0.35, 0.95, 0.55))
+
+
+func _on_theme_selected(theme_id: String, btn: Button) -> void:
+	_selected_theme_id = theme_id
+	for c in _theme_selector_container.get_children():
+		if c is Button:
+			c.button_pressed = (c == btn)
+			c.remove_theme_color_override("font_color")
+			if c == btn:
+				c.add_theme_color_override("font_color", Color(0.35, 0.95, 0.55))
+
+
+func _create_sync_button(vs: Vector2) -> void:
+	var sync_btn := Button.new()
+	sync_btn.name = "SyncCloudButton"
+	sync_btn.text = "☁ Senkronize et"
+	sync_btn.custom_minimum_size = Vector2(170, 40)
+	sync_btn.position = Vector2(vs.x - 178, 12)
+	sync_btn.add_theme_font_size_override("font_size", 15)
+	sync_btn.add_theme_color_override("font_color", Color(0.9, 0.92, 1.0))
+	var ss := StyleBoxFlat.new()
+	ss.bg_color = Color(0.15, 0.18, 0.35)
+	ss.set_corner_radius_all(10)
+	ss.border_color = Color(0.4, 0.5, 0.85, 0.8)
+	ss.set_border_width_all(1)
+	sync_btn.add_theme_stylebox_override("normal", ss)
+	sync_btn.pressed.connect(_on_sync_cloud_pressed)
+	ui_layer.add_child(sync_btn)
+
+
+func _on_sync_cloud_pressed() -> void:
+	if has_node("/root/BackendService") and BackendService.has_method("pull_cloud_save"):
+		BackendService.pull_cloud_save()
+
+func _create_mode_selector(vs: Vector2) -> void:
+	# Faz 7 – Mod seçici: Normal, Sonsuz, Boss Rush, Günlük
+	_mode_selector_container = HBoxContainer.new()
+	_mode_selector_container.name = "ModeSelector"
+	_mode_selector_container.position = Vector2(20, vs.y - 200)
+	_mode_selector_container.size = Vector2(vs.x - 40, 52)
+	_mode_selector_container.add_theme_constant_override("separation", 10)
+	ui_layer.add_child(_mode_selector_container)
+	var modes := [
+		[GameState.MODE_NORMAL, "Normal"],
+		[GameState.MODE_ENDLESS, "Sonsuz"],
+		[GameState.MODE_BOSS_RUSH, "Boss Rush"],
+		[GameState.MODE_DAILY_CHALLENGE, "Günlük"]
+	]
+	for m in modes:
+		var btn := Button.new()
+		btn.text = m[1]
+		btn.custom_minimum_size = Vector2(105, 44)
+		btn.toggle_mode = true
+		btn.button_pressed = (m[0] == _selected_game_mode)
+		btn.add_theme_font_size_override("font_size", 15)
+		var ms := StyleBoxFlat.new()
+		ms.bg_color = Color(0.14, 0.16, 0.32)
+		ms.set_corner_radius_all(10)
+		ms.border_color = Color(0.4, 0.5, 0.75, 0.85)
+		ms.set_border_width_all(1)
+		btn.add_theme_stylebox_override("normal", ms)
+		btn.pressed.connect(_on_mode_selected.bind(m[0], btn))
+		_mode_selector_container.add_child(btn)
+		if m[0] == _selected_game_mode:
+			btn.add_theme_color_override("font_color", Color(0.35, 0.95, 0.5))
+
+func _on_mode_selected(mode: String, btn: Button) -> void:
+	_selected_game_mode = mode
+	for c in _mode_selector_container.get_children():
+		if c is Button:
+			c.button_pressed = (c == btn)
+			c.remove_theme_color_override("font_color")
+			if c == btn:
+				c.add_theme_color_override("font_color", Color(0.35, 0.95, 0.5))
 
 # === LOBBY MOLECULE LOADING ===
 
 func _load_lobby_molecule() -> void:
-	print("🔄 Loading LobbyMolecule...")
+	Log.info("Lobby: loading LobbyMolecule", {"path": "res://src/ui/molecules/lobby_molecule.tscn"})
 	
-	# Scene dosyasını yükle
+	# Scene dosyasını yükle (Faz 0.2 – Lobi ekranı çalıştır)
 	var lobby_scene_path = "res://src/ui/molecules/lobby_molecule.tscn"
 	
 	if not ResourceLoader.exists(lobby_scene_path):
-		print("❌ LobbyMolecule scene not found: %s" % lobby_scene_path)
+		Log.error("Lobby: LobbyMolecule scene not found", {"path": lobby_scene_path})
 		_create_minimal_lobby()
 		return
 	
 	var lobby_scene = load(lobby_scene_path)
 	if not lobby_scene:
-		print("❌ Failed to load LobbyMolecule scene")
+		Log.error("Lobby: Failed to load LobbyMolecule scene")
 		_create_minimal_lobby()
 		return
 	
@@ -235,7 +374,7 @@ func _load_lobby_molecule() -> void:
 	# _ready sonrası boyutun kalıcı olması için ertelenmiş atama
 	call_deferred("_apply_lobby_molecule_size")
 	
-	print("✅ LobbyMolecule loaded successfully")
+	Log.info("Lobby: LobbyMolecule loaded successfully")
 
 func _apply_lobby_molecule_size() -> void:
 	if not is_instance_valid(lobby_molecule):
@@ -255,23 +394,23 @@ func _connect_lobby_signals() -> void:
 	if not lobby_molecule:
 		return
 	
-	# Game start signal
+	# Game start signal (Faz 0.3 – oyun başlatma akışı)
 	if lobby_molecule.has_signal("game_start_requested"):
 		lobby_molecule.game_start_requested.connect(_on_game_start_requested)
 	else:
-		print("⚠️ LobbyMolecule: game_start_requested signal not found")
+		Log.warn("Lobby: game_start_requested signal not found on LobbyMolecule")
 	
 	# Navigation back signal
 	if lobby_molecule.has_signal("navigation_back"):
 		lobby_molecule.navigation_back.connect(_on_navigation_back)
 	else:
-		print("⚠️ LobbyMolecule: navigation_back signal not found")
+		Log.warn("Lobby: navigation_back signal not found on LobbyMolecule")
 	
 	# Purchase made signal
 	if lobby_molecule.has_signal("purchase_made"):
 		lobby_molecule.purchase_made.connect(_on_purchase_made)
 	else:
-		print("⚠️ LobbyMolecule: purchase_made signal not found")
+		Log.warn("Lobby: purchase_made signal not found on LobbyMolecule")
 	
 	# Yedek: OYUNA BAŞLA butonuna doğrudan bağlan (molekül sinyali atlarsa çalışsın)
 	call_deferred("_connect_play_button_fallback")
@@ -280,7 +419,7 @@ func _connect_play_button_fallback() -> void:
 	var play_btn = lobby_molecule.get_node_or_null("ContentManager/PlayButton") if lobby_molecule else null
 	if play_btn and not play_btn.is_connected("pressed", _on_play_button_direct):
 		play_btn.pressed.connect(_on_play_button_direct)
-		print("🔗 Lobby: Play button direct fallback connected")
+		Log.debug("Lobby: Play button direct fallback connected")
 
 func _on_play_button_direct() -> void:
 	# Seçimleri molekülden al veya varsayılan kullan
@@ -297,10 +436,10 @@ func _on_play_button_direct() -> void:
 # === GAME DATA INTEGRATION ===
 
 func _load_game_data() -> void:
-	print("📊 Loading game data...")
+	Log.debug("Lobby: loading game data")
 	
 	if not game_data:
-		print("⚠️ GameData not available, using defaults")
+		Log.warn("Lobby: GameData not available, using defaults")
 		_set_default_game_data()
 		return
 	
@@ -339,12 +478,12 @@ func _load_game_data() -> void:
 		}
 	}
 	
-	# LobbyMolecule'e verileri yükle
+	# LobbyMolecule'e verileri yükle (Faz 0.2 – veri doğru bağlansın)
 	if lobby_molecule and lobby_molecule.has_method("set_player_data"):
 		lobby_molecule.set_player_data(player_data)
-		print("✅ Game data loaded into LobbyMolecule")
+		Log.info("Lobby: game data loaded into LobbyMolecule")
 	else:
-		print("⚠️ LobbyMolecule.set_player_data method not found")
+		Log.warn("Lobby: LobbyMolecule.set_player_data not found")
 
 func _set_default_game_data() -> void:
 	# Varsayılan oyuncu verileri (GameData yoksa)
@@ -369,12 +508,12 @@ func _set_default_game_data() -> void:
 	
 	if lobby_molecule and lobby_molecule.has_method("set_player_data"):
 		lobby_molecule.set_player_data(default_data)
-		print("✅ Default game data set")
+		Log.info("Lobby: default game data set")
 
 # === MINIMAL LOBBY (FALLBACK) ===
 
 func _create_minimal_lobby() -> void:
-	print("🛠️ Creating minimal lobby (fallback)...")
+	Log.warn("Lobby: creating minimal lobby (fallback)")
 	
 	var minimal_lobby = Control.new()
 	minimal_lobby.name = "MinimalLobby"
@@ -415,7 +554,7 @@ func _create_minimal_lobby() -> void:
 	ui_layer.add_child(minimal_lobby)
 	lobby_molecule = minimal_lobby
 	
-	print("✅ Minimal lobby created")
+	Log.info("Lobby: minimal lobby created")
 
 func _create_button(text: String, position: Vector2, size: Vector2, 
 				   bg_color: Color, border_color: Color, callback: Callable) -> Button:
@@ -502,11 +641,7 @@ func _on_game_start_requested(character_id: String, weapon_id: String, flag_id: 
 	if _is_transitioning:
 		return
 	_is_transitioning = true
-	print("🎮 Lobby: game_start_requested received, transitioning to game...")
-	print("🎮 Game starting with:")
-	print("   Character: %s" % character_id)
-	print("   Weapon: %s" % weapon_id)
-	print("   Flag: %s" % flag_id)
+	Log.info("Lobby: game_start_requested", {"character": character_id, "weapon": weapon_id, "flag": flag_id})
 	
 	# Oyun verilerini kaydet
 	_save_game_data()
@@ -526,7 +661,7 @@ func _on_navigation_back() -> void:
 		return
 	
 	_is_transitioning = true
-	print("🔙 Navigating back to menu")
+	Log.info("Lobby: navigating back to menu")
 	
 	# Oyun verilerini kaydet
 	_save_game_data()
@@ -542,7 +677,7 @@ func _on_navigation_back() -> void:
 	tween.tween_callback(_transition_to_menu)
 
 func _on_purchase_made(item_type: String, item_id: String, cost: int) -> void:
-	print("💰 Purchase made: %s - %s (%d XP)" % [item_type, item_id, cost])
+	Log.info("Lobby: purchase made", {"item_type": item_type, "item_id": item_id, "cost": cost})
 	
 	# Ses efekti
 	_play_ui_sound("click")
@@ -557,12 +692,19 @@ func _on_minimal_play_pressed() -> void:
 # === TRANSITION METHODS ===
 
 func _transition_to_game() -> void:
-	print("🔄 Transitioning to game scene...")
+	# Faz 7 – GameState'e mod, tema ve günlük tohumu yaz
+	GameState.game_mode = _selected_game_mode
+	GameState.theme_id = _selected_theme_id
+	if _selected_game_mode == GameState.MODE_DAILY_CHALLENGE and has_node("/root/GameData"):
+		GameState.daily_challenge_seed = GameData.get_daily_challenge_seed()
+	else:
+		GameState.daily_challenge_seed = 0
+	Log.info("Lobby: transitioning to game scene", {"mode": _selected_game_mode})
 	get_tree().change_scene_to_file("res://main.tscn")
 	_is_transitioning = false
 
 func _transition_to_menu() -> void:
-	print("🔄 Transitioning to menu scene...")
+	Log.info("Lobby: transitioning to menu scene")
 	get_tree().change_scene_to_file("res://menu.tscn")
 	_is_transitioning = false
 
@@ -591,7 +733,7 @@ func _play_ui_sound(sound_name: String) -> void:
 				one_shot.play()
 				played = true
 		if not played:
-			print("🔇 UI sound '%s': could not play (AudioSystem or fallback failed)" % sound_name)
+			Log.debug("Lobby: UI sound '%s' could not play" % sound_name)
 
 func _save_game_data() -> void:
 	# Lobideki seçim ve satın almaları GameData'ya yaz (yoksa bir sonraki girişte kaybolur)
@@ -606,9 +748,9 @@ func _save_game_data() -> void:
 		game_data.equipped_flag = pd.get("selected_flag", game_data.equipped_flag)
 	if game_data and game_data.has_method("save_data"):
 		game_data.save_data()
-		print("💾 Game data saved")
+		Log.debug("Lobby: game data saved")
 	else:
-		print("⚠️ GameData.save_data method not available")
+		Log.warn("Lobby: GameData.save_data not available")
 
 # === DEBUG ===
 

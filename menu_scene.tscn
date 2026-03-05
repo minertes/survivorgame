@@ -29,7 +29,7 @@ size = Vector2(400, 80)
 
 [node name="MenuStatsDisplayAtom" type="Control" parent="."]
 script = ExtResource("5_menu_stats")
-position = Vector2(0, 875)
+position = Vector2(0, 1020)
 size = Vector2(720, 100)
 
 [node name="MenuUIMolecule" type="Control" parent="."]

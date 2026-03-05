@@ -70,8 +70,8 @@ class SyncConflict:
 # === SIGNALS ===
 signal cloud_service_initialized(service: CloudService, success: bool)
 signal cloud_service_disconnected()
-signal sync_started(slot_index: int = -1)  # -1 means all slots
-signal sync_completed(slot_index: int, success: bool, error: String = "")
+signal sync_started(slot_index: int)
+signal sync_completed(slot_index: int, success: bool, error: String)
 signal sync_conflict_detected(conflict: SyncConflict)
 signal sync_conflict_resolved(conflict: SyncConflict, resolution: String)
 signal cloud_file_uploaded(slot_index: int, file_name: String, file_size: int)
@@ -425,9 +425,6 @@ func _initialize_steam_cloud() -> Dictionary:
 	if not _is_steam_available():
 		return {"success": false, "error": "Steam not available"}
 	
-	# Simulate initialization delay
-	await get_tree().create_timer(0.1).timeout
-	
 	# In real implementation, you would:
 	# 1. Check if Steam Cloud is enabled for the app
 	# 2. Initialize Steam Cloud API
@@ -442,18 +439,11 @@ func _initialize_epic_cloud() -> Dictionary:
 	if not _is_epic_available():
 		return {"success": false, "error": "Epic not available"}
 	
-	# Simulate initialization delay
-	await get_tree().create_timer(0.1).timeout
-	
 	return {"success": true, "service": CloudService.EPIC_CLOUD}
 
 func _initialize_custom_cloud() -> Dictionary:
 	# Initialize custom cloud service
 	# This would require custom implementation
-	
-	# Simulate initialization delay
-	await get_tree().create_timer(0.1).timeout
-	
 	return {"success": true, "service": CloudService.CUSTOM}
 
 func _get_cloud_file_name(slot_index: int) -> String:
@@ -660,8 +650,6 @@ func _get_steam_cloud_file_info(file_name: String) -> Dictionary:
 
 func _upload_to_steam_cloud(file_name: String, bytes: PackedByteArray) -> Dictionary:
 	# Placeholder for Steam Cloud upload
-	await get_tree().create_timer(0.5).timeout  # Simulate network delay
-	
 	# Simulate successful upload
 	return {
 		"success": true,
@@ -672,8 +660,6 @@ func _upload_to_steam_cloud(file_name: String, bytes: PackedByteArray) -> Dictio
 
 func _download_from_steam_cloud(file_name: String) -> Dictionary:
 	# Placeholder for Steam Cloud download
-	await get_tree().create_timer(0.5).timeout  # Simulate network delay
-	
 	# Simulate failed download (no file in cloud)
 	return {"success": false, "error": "File not found in Steam Cloud"}
 
@@ -706,8 +692,6 @@ func _get_epic_cloud_file_info(file_name: String) -> Dictionary:
 
 func _upload_to_epic_cloud(file_name: String, bytes: PackedByteArray) -> Dictionary:
 	# Placeholder for Epic Cloud upload
-	await get_tree().create_timer(0.5).timeout  # Simulate network delay
-	
 	return {
 		"success": true,
 		"file_name": file_name,
@@ -717,8 +701,6 @@ func _upload_to_epic_cloud(file_name: String, bytes: PackedByteArray) -> Diction
 
 func _download_from_epic_cloud(file_name: String) -> Dictionary:
 	# Placeholder for Epic Cloud download
-	await get_tree().create_timer(0.5).timeout  # Simulate network delay
-	
 	return {"success": false, "error": "File not found in Epic Cloud"}
 
 func _delete_epic_cloud_file(file_name: String) -> Dictionary:
@@ -750,7 +732,6 @@ func _get_custom_cloud_file_info(file_name: String) -> Dictionary:
 
 func _upload_to_custom_cloud(file_name: String, bytes: PackedByteArray) -> Dictionary:
 	# Placeholder for custom cloud upload
-	await get_tree().create_timer(0.5).timeout  # Simulate network delay
 	
 	return {
 		"success": true,
@@ -761,8 +742,6 @@ func _upload_to_custom_cloud(file_name: String, bytes: PackedByteArray) -> Dicti
 
 func _download_from_custom_cloud(file_name: String) -> Dictionary:
 	# Placeholder for custom cloud download
-	await get_tree().create_timer(0.5).timeout  # Simulate network delay
-	
 	return {"success": false, "error": "File not found in custom cloud"}
 
 func _delete_custom_cloud_file(file_name: String) -> Dictionary:
@@ -867,7 +846,7 @@ func simulate_sync_scenario() -> Dictionary:
 			"timestamp": Time.get_ticks_msec()
 		},
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 0.0,
 			"game_version": "1.0.0"
 		}

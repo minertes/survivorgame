@@ -8,7 +8,13 @@ signal tab_changed(tab_index: int, tab_name: String)
 signal tab_hovered(tab_index: int)
 signal tab_selected(tab_index: int)
 
-# === CONSTANTS ===
+# === CONSTANTS === (tasarım: 720 viewport)
+const DESIGN_W := 720.0
+const TAB_BAR_H := 48
+const TAB_FONT_SIZE := 15
+const TAB_MIN_W := 80
+const TAB_MAX_W := 160
+
 enum Tab {
 	CHARACTER = 0,
 	WEAPON = 1,
@@ -98,93 +104,91 @@ func set_tab_notification(tab_index: int, has_notification: bool) -> void:
 # === PRIVATE METHODS ===
 
 func _build_ui() -> void:
-	# Ana container
-	var main_vbox = VBoxContainer.new()
+	var main_vbox := VBoxContainer.new()
 	main_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(main_vbox)
-	
-	# Tab container
+
 	_tab_container = HBoxContainer.new()
 	_tab_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_tab_container.add_theme_constant_override("separation", 0)
+	_tab_container.add_theme_constant_override("separation", 4)
 	main_vbox.add_child(_tab_container)
-	
-	# Tab butonlarını oluştur
+
 	for tab_info in TAB_DATA:
-		var tab_button = _create_tab_button(tab_info)
-		_tab_container.add_child(tab_button)
-		tab_buttons.append(tab_button)
-	
-	# Indicator container
+		var tab_btn := _create_tab_button(tab_info)
+		_tab_container.add_child(tab_btn)
+		tab_buttons.append(tab_btn)
+
 	_indicator_container = Control.new()
 	_indicator_container.custom_minimum_size = Vector2(0, 3)
 	main_vbox.add_child(_indicator_container)
-	
-	# Indicator'ları oluştur
 	_create_tab_indicators()
 
 func _create_tab_button(tab_info: Dictionary) -> Button:
-	var button = Button.new()
-	button.text = "  %s  %s" % [tab_info["icon"], tab_info["name"]]
+	var button := Button.new()
+	button.text = " %s %s " % [tab_info["icon"], tab_info["name"]]
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size = Vector2(100, 52)
-	button.add_theme_font_size_override("font_size", 14)
-	
-	# Signal bağla
+	button.custom_minimum_size = Vector2(TAB_MIN_W, TAB_BAR_H)
+	# Button'da custom_maximum_size yok; sadece minimum kullan
+	button.add_theme_font_size_override("font_size", TAB_FONT_SIZE)
 	button.pressed.connect(_on_tab_pressed.bind(tab_info["id"]))
 	button.mouse_entered.connect(_on_tab_hovered.bind(tab_info["id"]))
-	
 	return button
 
 func _create_tab_indicators() -> void:
 	for i in range(TAB_DATA.size()):
-		var indicator = ColorRect.new()
-		indicator.color = Color(0.4, 0.7, 1.0, 0.0)  # Başlangıçta şeffaf
+		var indicator := ColorRect.new()
+		indicator.color = Color(0.4, 0.65, 0.35, 0.0)
+		indicator.custom_minimum_size = Vector2(0, 3)
 		indicator.size = Vector2(0, 3)
 		_indicator_container.add_child(indicator)
 		tab_indicators.append(indicator)
 
 func _update_tab_appearance() -> void:
-	var tab_width = size.x / TAB_DATA.size()
-	
-	for i in range(TAB_DATA.size()):
-		var button = tab_buttons[i]
-		var indicator = tab_indicators[i]
-		var is_active = (i == current_tab)
-		
-		# Buton stilini güncelle
-		var button_style = StyleBoxFlat.new()
+	var total_w := maxf(size.x, 1.0)
+	var tab_count := TAB_DATA.size()
+	var tab_width := total_w / tab_count
+
+	for i in range(tab_count):
+		if i >= tab_buttons.size() or i >= tab_indicators.size():
+			continue
+		var button: Button = tab_buttons[i]
+		var indicator: Control = tab_indicators[i]
+		if not button or not indicator:
+			continue
+		var is_active := (i == current_tab)
+
+		var button_style := StyleBoxFlat.new()
 		if is_active:
-			button_style.bg_color = Color(0.15, 0.1, 0.25, 0.9)
-			button_style.border_color = Color(0.4, 0.7, 1.0, 0.8)
-			button.add_theme_color_override("font_color", Color(0.9, 0.8, 1.0))
+			button_style.bg_color = Color(0.14, 0.12, 0.2)
+			button_style.border_color = Color(0.45, 0.6, 0.35, 0.9)
+			button.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85))
 		else:
-			button_style.bg_color = Color(0.08, 0.06, 0.15, 0.7)
-			button_style.border_color = Color(0.3, 0.3, 0.5, 0.3)
-			button.add_theme_color_override("font_color", Color(0.7, 0.7, 0.9))
-		
-		button_style.set_border_width_all(0)
+			button_style.bg_color = Color(0.08, 0.07, 0.12)
+			button_style.border_color = Color(0.25, 0.25, 0.35, 0.4)
+			button.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+		button_style.set_corner_radius_all(6)
+		button_style.set_border_width_all(1)
 		button_style.border_width_bottom = 2
 		button.add_theme_stylebox_override("normal", button_style)
-		
-		# Hover stili
-		var hover_style = StyleBoxFlat.new()
-		hover_style.bg_color = Color(0.2, 0.15, 0.35, 0.9)
-		hover_style.border_color = Color(0.5, 0.8, 1.0, 0.6)
-		hover_style.set_border_width_all(0)
+
+		var hover_style := StyleBoxFlat.new()
+		hover_style.bg_color = Color(0.18, 0.16, 0.26)
+		hover_style.border_color = Color(0.5, 0.65, 0.4, 0.7)
+		hover_style.set_corner_radius_all(6)
+		hover_style.set_border_width_all(1)
 		hover_style.border_width_bottom = 2
 		button.add_theme_stylebox_override("hover", hover_style)
-		
-		# Indicator pozisyonu ve rengi
-		var indicator_x = i * tab_width
-		var indicator_target_width = tab_width if is_active else 0
-		var indicator_target_color = Color(0.4, 0.7, 1.0, 1.0) if is_active else Color(0.4, 0.7, 1.0, 0.0)
-		
-		# Animasyon
-		var tween = create_tween()
-		tween.tween_property(indicator, "size:x", indicator_target_width, 0.2)
-		tween.parallel().tween_property(indicator, "color", indicator_target_color, 0.2)
-		tween.parallel().tween_property(indicator, "position:x", indicator_x, 0.2)
+
+		var ind_x := i * tab_width
+		var ind_w := tab_width if is_active else 0.0
+		var ind_color := Color(0.4, 0.75, 0.35, 1.0) if is_active else Color(0.4, 0.6, 0.35, 0.0)
+
+		indicator.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		indicator.offset_left = ind_x
+		indicator.offset_top = 0
+		indicator.offset_right = ind_x + ind_w
+		indicator.offset_bottom = 3
+		indicator.color = ind_color
 
 func _on_tab_pressed(tab_index: int) -> void:
 	set_current_tab(tab_index)
@@ -193,8 +197,7 @@ func _on_tab_hovered(tab_index: int) -> void:
 	tab_hovered.emit(tab_index)
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED:
-		# Pencere boyutu değiştiğinde indicator'ları güncelle
+	if what == NOTIFICATION_RESIZED and tab_buttons.size() == TAB_DATA.size():
 		call_deferred("_update_tab_appearance")
 
 # === DEBUG ===

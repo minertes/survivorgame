@@ -3,6 +3,9 @@
 class_name UITestOrchestrator
 extends Node
 
+# === PRELOADS ===
+const BalanceTestModule = preload("res://src/test/modules/balance/balance_test_module.gd")
+
 # === NODES ===
 @onready var test_container: Control = $TestContainer
 @onready var results_label: Label = $ResultsLabel

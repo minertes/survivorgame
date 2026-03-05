@@ -1,0 +1,39 @@
+---
+description: Her faz tamamlandıktan sonra Team Lead Dev denetimi yapılır
+globs: ["UYGULAMA_PLANI_BIRLESIK.md", "docs/FAZ_SONRASI_DENETIM.md", "**/FAZ*", "**/faz*"]
+---
+
+# Faz Sonrası Team Lead Dev Denetimi
+
+Bu projede **her bir faz tamamlandıktan sonra** aşağıdaki kural uygulanır:
+
+## Kural
+
+**Team Lead Dev** rolüyle, o fazda yapılan işler **tüm yönleriyle** denetlenir. Denetim tamamlanmadan bir sonraki faza geçilmez.
+
+## Ne zaman uygulanır
+
+- Bir fazın "tamamlandı" veya "uygulandı" olarak işaretlendiği durumlarda
+- Kullanıcı "faz X tamamlandı" veya "denetle" dediğinde
+- Bir sonraki faza geçmeden hemen önce
+
+## Denetim kapsamı (tüm yönler)
+
+1. **Kod:** Derleme hatası yok, script/tipler düzgün, gereksiz bağımlılık yok, autoload kullanımı doğru
+2. **UI/UX:** Görsel checklist (ilgili ekranlar), tutarlılık, responsive
+3. **Test:** İlgili testler çalışıyor; menü→lobi→oyun akışı sorunsuz; manuel checklist ile uyum
+4. **Kayıt/veri:** Save/load bozulmuyor; yeni alanlar geriye dönük uyumlu
+5. **Performans:** Belirgin FPS düşüşü veya sızıntı yok
+6. **Dokümantasyon:** Değişen sistemler için not güncel; planda ilgili maddeler işlendi
+
+## Nasıl uygulanır
+
+1. `docs/FAZ_SONRASI_DENETIM.md` dosyasındaki checklist açılır
+2. İlgili faz için tüm maddeler (Kod, UI/UX, Test, Kayıt, Performans, Dokümantasyon) gözden geçirilir
+3. Eksik veya hatalı bir şey varsa listelenir ve giderilmesi önerilir
+4. Tüm maddeler "Tamam" veya "N/A" ise denetim kaydı doldurulur ve bir sonraki faza geçilebileceği belirtilir
+
+## İlişkili belgeler
+
+- **Plan:** `UYGULAMA_PLANI_BIRLESIK.md` → "Faz Sonrası Team Lead Dev Denetimi"
+- **Checklist:** `docs/FAZ_SONRASI_DENETIM.md`

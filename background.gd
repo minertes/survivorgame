@@ -13,6 +13,17 @@ const THEMES := [
 
 var _theme_idx := 0
 
+# Faz 7.5 – Tema ID (lobi'den seçilebilir)
+const THEME_IDS := {"default": 0, "graveyard": 0, "forest": 1, "desert": 2, "hell": 3}
+
+
+func set_theme_by_id(theme_id: String) -> void:
+	var idx: int = int(THEME_IDS.get(theme_id, 0))
+	idx = clampi(idx, 0, THEMES.size() - 1)
+	_theme_idx = idx
+	RenderingServer.set_default_clear_color(_tc(0))
+	queue_redraw()
+
 
 func _tc(idx: int) -> Color:
 	return THEMES[_theme_idx][idx] as Color

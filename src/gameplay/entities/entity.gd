@@ -225,4 +225,4 @@ func print_debug_info() -> void:
 	
 	for i in range(components.size()):
 		var component = components[i]
-		print("  %d. %s" % [i + 1, component])</result>
+		print("  %d. %s" % [i + 1, component])

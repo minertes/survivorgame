@@ -14,7 +14,7 @@ var drop_component: DropComponent = null
 signal enemy_spotted_target(target: Node2D)
 signal enemy_lost_target()
 signal enemy_attacked(target: Node2D)
-signal enemy_killed(killer: Node = null)
+signal enemy_killed(killer: Node)
 signal enemy_despawned()
 
 # === LIFECYCLE ===

@@ -9,7 +9,7 @@ var speed := 100.0
 var damage_per_second := 15.0
 var xp_value := 5
 
-# 0=Zombi  1=Koşucu  2=Dev  3=İblis
+# 0=Zombi  1=Koşucu  2=Dev  3=İblis  4=Boss (Faz 2.2.1 – en az 5 düşman türü)
 var enemy_type := 0
 
 var player_ref: Node2D = null
@@ -54,6 +54,7 @@ func _spawn_hit_effect() -> void:
 		1: hit_color = Color(1.0, 0.6, 0.1)
 		2: hit_color = Color(0.9, 0.1, 0.1)
 		3: hit_color = Color(0.8, 0.2, 1.0)
+		4: hit_color = Color(1.0, 0.2, 0.5)
 	fx.setup(hit_color, _get_radius() * 0.8)
 
 
@@ -67,10 +68,18 @@ func _die() -> void:
 	if a and a.has_method("play_sound"):
 		a.play_sound("enemy_die")
 
+	# Physics flush sırasında scene tree değişikliği hatası önlemi
+	var pos := global_position
+	var parent_node := get_parent()
+	call_deferred("_deferred_die", pos, parent_node)
+
+
+func _deferred_die(pos: Vector2, parent_node: Node) -> void:
 	var gem := XP_GEM_SCENE.instantiate()
-	gem.global_position = global_position
+	gem.global_position = pos
 	gem.xp_value = xp_value
-	get_parent().add_child(gem)
+	if is_instance_valid(parent_node):
+		parent_node.add_child(gem)
 	queue_free()
 
 
@@ -78,6 +87,7 @@ func _get_radius() -> float:
 	match enemy_type:
 		1: return 13.0
 		2: return 26.0
+		4: return 32.0
 		_: return 18.0
 
 
@@ -97,6 +107,7 @@ func _draw() -> void:
 		1: _draw_spider(r)
 		2: _draw_beetle(r)
 		3: _draw_mantis(r)
+		4: _draw_boss(r)
 
 	# Can barı
 	var bw := r * 2.4
@@ -296,3 +307,41 @@ func _draw_mantis(r: float) -> void:
 	draw_circle(Vector2( r * 0.22, -r * 1.06), r * 0.07, Color(0.0, 0.0, 0.0))
 	draw_circle(Vector2(-r * 0.17, -r * 1.09), r * 0.03, Color(1, 1, 1, 0.7))
 	draw_circle(Vector2( r * 0.27, -r * 1.09), r * 0.03, Color(1, 1, 1, 0.7))
+
+
+# ── Boss (tip 4) ───────────────────────────────────────────────
+func _draw_boss(r: float) -> void:
+	var armor := Color(0.25, 0.25, 0.35)
+	var glow  := Color(1.0, 0.35, 0.5, 0.6)
+	var drk  := Color(0.12, 0.12, 0.18)
+
+	_draw_ell(0, r * 0.7, r * 1.2, r * 0.35, Color(0, 0, 0, 0.35))
+
+	# Kalın bacaklar
+	for i in 4:
+		var sx := (float(i) - 1.5) * (r * 0.5)
+		var ly := r * 0.4 + (float(i % 2) * r * 0.2)
+		draw_line(Vector2(sx, ly), Vector2(sx + sign(sx) * r * 0.4, ly + r * 0.6), drk, 4.0)
+		draw_line(Vector2(sx + sign(sx) * r * 0.4, ly + r * 0.6), Vector2(sx + sign(sx) * r * 0.7, ly + r * 0.9), drk, 3.5)
+
+	# Gövde zırhı
+	_draw_ell(0, 0, r * 1.0, r * 0.85, armor)
+	_draw_ell(0, 0, r * 0.82, r * 0.68, drk)
+	draw_line(Vector2(-r * 0.9, 0), Vector2(r * 0.9, 0), Color(0.4, 0.4, 0.55), 2.0)
+	for i in 5:
+		var tx := (float(i) - 2.0) * r * 0.35
+		draw_rect(Rect2(tx - 3, -r * 0.5, 6, r * 0.4), Color(0.35, 0.35, 0.5))
+
+	# Boyun / baş
+	draw_circle(Vector2(0, -r * 1.0), r * 0.45, armor)
+	draw_circle(Vector2(0, -r * 1.0), r * 0.32, drk)
+	# Boynuzlar
+	draw_line(Vector2(-r * 0.35, -r * 1.35), Vector2(-r * 0.7, -r * 1.9), drk, 4.0)
+	draw_line(Vector2( r * 0.35, -r * 1.35), Vector2( r * 0.7, -r * 1.9), drk, 4.0)
+	draw_circle(Vector2(-r * 0.72, -r * 1.92), r * 0.12, glow)
+	draw_circle(Vector2( r * 0.72, -r * 1.92), r * 0.12, glow)
+	# Gözler
+	draw_circle(Vector2(-r * 0.2, -r * 1.05), r * 0.14, Color(1.0, 0.2, 0.3))
+	draw_circle(Vector2( r * 0.2, -r * 1.05), r * 0.14, Color(1.0, 0.2, 0.3))
+	draw_circle(Vector2(-r * 0.2, -r * 1.05), r * 0.06, Color(0.1, 0, 0))
+	draw_circle(Vector2( r * 0.2, -r * 1.05), r * 0.06, Color(0.1, 0, 0))

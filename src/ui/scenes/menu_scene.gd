@@ -156,6 +156,9 @@ func _load_game_data() -> void:
 	# GameData'nin mevcut olup olmadığını kontrol et
 	if has_node("/root/GameData"):
 		game_data_available = true
+		GameData.on_login_tick()
+		if has_node("/root/AchievementsService"):
+			AchievementsService.check_all()
 		game_data_loaded.emit(true)
 	else:
 		game_data_available = false
@@ -196,11 +199,18 @@ func _initialize_components() -> void:
 		sound_integration.initialize()
 
 func _connect_signals() -> void:
+	# Faz 5.2 – Başarı açıldığında kısa bildirim
+	if has_node("/root/AchievementsService"):
+		AchievementsService.achievement_unlocked.connect(_on_achievement_unlocked)
+	
 	# MenuUIMolecule sinyalleri
 	if menu_ui:
 		menu_ui.start_button_pressed.connect(_on_start_button_pressed)
 		menu_ui.sound_settings_pressed.connect(_on_sound_button_pressed)
+		menu_ui.shop_button_pressed.connect(_on_shop_button_pressed)
+		menu_ui.leaderboard_button_pressed.connect(_on_leaderboard_button_pressed)
 		menu_ui.quit_button_pressed.connect(_on_quit_button_pressed)
+		menu_ui.sync_cloud_button_pressed.connect(_on_sync_cloud_button_pressed)
 	
 	# EntranceAnimationController sinyalleri
 	if entrance_animator:
@@ -229,6 +239,16 @@ func _on_start_button_pressed() -> void:
 	print("MenuScene: Start game requested")
 	play_button_effect("start")
 	transition_to_scene("res://lobby.tscn")
+
+func _on_shop_button_pressed() -> void:
+	print("MenuScene: Shop requested")
+	play_button_effect("shop")
+	transition_to_scene("res://shop.tscn")
+
+func _on_leaderboard_button_pressed() -> void:
+	print("MenuScene: Leaderboard requested")
+	play_button_effect("leaderboard")
+	transition_to_scene("res://social_ops.tscn")
 
 func _on_sound_button_pressed() -> void:
 	print("MenuScene: Sound settings requested")
@@ -276,6 +296,12 @@ func _on_quit_button_pressed() -> void:
 	# call_deferred ile çık; bazen doğrudan quit() editor/pencerede işlenmiyor
 	get_tree().call_deferred("quit")
 
+
+func _on_sync_cloud_button_pressed() -> void:
+	var menu = get_parent()
+	if menu and menu.has_method("sync_cloud_save"):
+		menu.sync_cloud_save()
+
 func _on_entrance_animation_completed(animation_name: String) -> void:
 	print("MenuScene: Entrance animation completed: %s" % animation_name)
 
@@ -287,6 +313,22 @@ func _on_warrior_card_clicked() -> void:
 func _on_stat_clicked(stat_name: String) -> void:
 	print("MenuScene: Stat clicked: %s" % stat_name)
 	# İstatistik detay ekranı gösterilebilir
+
+func _on_achievement_unlocked(achievement_id: String, data: Dictionary) -> void:
+	var name_str: String = data.get("name", achievement_id)
+	var icon: String = data.get("icon", "🏅")
+	play_button_effect("achievement")
+	# Kısa bildirim: üstte label
+	var lbl := Label.new()
+	lbl.text = "%s Başarı: %s" % [icon, name_str]
+	lbl.add_theme_font_size_override("font_size", 24)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+	lbl.position = Vector2(VP.x / 2.0 - 150, 120)
+	lbl.z_index = 100
+	add_child(lbl)
+	var tween := create_tween()
+	tween.tween_interval(2.5)
+	tween.tween_callback(lbl.queue_free)
 
 # === INPUT HANDLING ===
 

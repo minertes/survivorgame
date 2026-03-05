@@ -30,9 +30,9 @@ var auto_save_timer: Timer = null
 
 # === SIGNALS ===
 signal save_started(slot_index: int)
-signal save_completed(slot_index: int, success: bool, error: String = "")
+signal save_completed(slot_index: int, success: bool, error: String)
 signal load_started(slot_index: int)
-signal load_completed(slot_index: int, success: bool, error: String = "")
+signal load_completed(slot_index: int, success: bool, error: String)
 signal save_slot_changed(old_slot: int, new_slot: int)
 signal auto_save_triggered(slot_index: int)
 signal save_data_corrupted(slot_index: int, error: String)
@@ -209,7 +209,7 @@ func enable_cloud_save(enabled: bool = true) -> void:
 		cloud_save_adapter.set_enabled(enabled)
 
 func sync_with_cloud(slot_index: int = -1) -> Dictionary:
-	if not cloud_save_adapter or not cloud_save_adapter.is_enabled():
+	if not cloud_save_adapter or not cloud_save_adapter.is_enabled:
 		return {"success": false, "error": "Cloud save not available"}
 	
 	if slot_index == -1:
@@ -289,7 +289,7 @@ func _perform_save(slot_index: int, force: bool) -> Dictionary:
 	var save_data = save_slot_component.create_save_data(
 		slot_index,
 		game_state_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		Time.get_ticks_msec() / 1000.0  # Convert to seconds
 	)
 	
@@ -315,7 +315,7 @@ func _perform_save(slot_index: int, force: bool) -> Dictionary:
 	last_save_time = Time.get_ticks_msec() / 1000.0
 	
 	# Sync with cloud if enabled
-	if cloud_save_adapter and cloud_save_adapter.is_enabled():
+	if cloud_save_adapter and cloud_save_adapter.is_enabled:
 		cloud_save_adapter.sync_slot(slot_index)
 	
 	# Emit event
@@ -510,7 +510,7 @@ func get_system_info() -> Dictionary:
 		"is_loading": is_loading,
 		"last_save_time": last_save_time,
 		"auto_save_enabled": is_auto_save_enabled(),
-		"cloud_save_available": cloud_save_adapter != null and cloud_save_adapter.is_enabled(),
+		"cloud_save_available": cloud_save_adapter != null and cloud_save_adapter.is_enabled,
 		"save_slots": save_slots
 	}
 

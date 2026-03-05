@@ -84,10 +84,10 @@ func _setup_collision() -> void:
 	pickup_area.area_entered.connect(_on_area_entered)
 
 func _setup_physics() -> void:
-	# Hafif fizik etkileşimi
-	set_collision_layer_value(1, false)  # World layer
-	set_collision_layer_value(3, true)   # Item layer
-	set_collision_mask_value(2, true)    # Player layer
+	# Hafif fizik etkileşimi (pickup_area Area2D üzerinde)
+	if pickup_area:
+		pickup_area.collision_layer = 4  # Item layer (bit 3)
+		pickup_area.collision_mask = 2   # Player layer (bit 2)
 
 # === PUBLIC API ===
 
@@ -265,16 +265,15 @@ func _create_particle_effect() -> void:
 	particle_effect.amount = 8
 	particle_effect.lifetime = 2.0
 	particle_effect.explosiveness = 0.0
-	particle_effect.emission_shape = GPUParticles2D.EMISSION_SHAPE_SPHERE
-	particle_effect.emission_sphere_radius = 20.0
-	particle_effect.gravity = Vector2(0, 20)
-	particle_effect.initial_velocity = 10.0
-	particle_effect.initial_velocity_random = 0.5
 	
-	var material = ParticlesMaterial.new()
-	material.gravity = Vector3(0, 20, 0)
+	var material = ParticleProcessMaterial.new()
+	material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	material.emission_sphere_radius = 20.0
+	material.direction = Vector3(0, 1, 0)
 	material.spread = 45.0
-	material.flatness = 1.0
+	material.initial_velocity_min = 8.0
+	material.initial_velocity_max = 12.0
+	material.gravity = Vector3(0, 20, 0)
 	particle_effect.process_material = material
 	
 	particle_effect.modulate = RARITY_COLORS.get(rarity, Color.WHITE)
@@ -289,9 +288,9 @@ func _create_pickup_effect() -> void:
 	pickup_particles.explosiveness = 1.0
 	pickup_particles.one_shot = true
 	
-	var material = ParticlesMaterial.new()
+	var material = ParticleProcessMaterial.new()
 	material.gravity = Vector3(0, -100, 0)
-	material.spread = 360.0
+	material.spread = 180.0
 	pickup_particles.process_material = material
 	
 	pickup_particles.modulate = RARITY_COLORS.get(rarity, Color.WHITE)

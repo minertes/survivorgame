@@ -1,19 +1,44 @@
 extends Area2D
 
+# Faz 2.1.2 – Havuz için: sinyal ve geri dönüş
+signal bullet_finished(bullet: Node)
+
 var speed := 500.0
 var direction := Vector2.RIGHT
 var damage := 25.0
 var weapon_type := "pistol"
+var from_pool := false
+
+var _lifetime_timer: Timer
 
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
-	var t := Timer.new()
-	add_child(t)
-	t.wait_time = 3.0
-	t.one_shot = true
-	t.timeout.connect(queue_free)
-	t.start()
+	_lifetime_timer = Timer.new()
+	add_child(_lifetime_timer)
+	_lifetime_timer.wait_time = 3.0
+	_lifetime_timer.one_shot = true
+	_lifetime_timer.timeout.connect(_on_lifetime_timeout)
+	_lifetime_timer.start()
+
+
+func set_from_pool(value: bool) -> void:
+	from_pool = value
+
+
+func restart_timer() -> void:
+	if _lifetime_timer:
+		_lifetime_timer.start()
+
+
+func _finish() -> void:
+	bullet_finished.emit(self)
+	if not from_pool:
+		queue_free()
+
+
+func _on_lifetime_timeout() -> void:
+	_finish()
 
 
 func _physics_process(delta: float) -> void:
@@ -23,8 +48,7 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("enemies"):
 		body.take_damage(damage)
-		# Sniper geçip devam etmez (anlık patlama yok, sadece ilk çarptığına hasar)
-		queue_free()
+		_finish()
 
 
 func _draw() -> void:

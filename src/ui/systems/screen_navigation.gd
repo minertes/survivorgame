@@ -27,7 +27,7 @@ enum TransitionType {
 # === NODES ===
 @onready var screen_container: Control = $ScreenContainer
 @onready var transition_overlay: ColorRect = $TransitionOverlay
-@onready var transition_tween: Tween = $TransitionTween
+var transition_tween: Tween
 
 # === STATE ===
 var current_screen: Control = null

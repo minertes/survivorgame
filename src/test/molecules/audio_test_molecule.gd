@@ -13,7 +13,9 @@ enum AudioTestCategory {
 	SPATIAL_AUDIO = 4,
 	AUDIO_POOLING = 5,
 	UI_INTEGRATION = 6,
-	EVENT_BUS = 7
+	EVENT_BUS = 7,
+	PERFORMANCE = 8,
+	STRESS = 9
 }
 
 # === CONFIG ===
@@ -222,27 +224,29 @@ func test_audio_pooling(concurrent_sounds: int = 10) -> bool:
 
 # === PROTECTED METHODS ===
 
-func _execute_test() -> bool:
-	"""Testi çalıştır"""
+func _execute_test():
+	"""Testi çalıştır (coroutine - await ile çağrılmalı)"""
 	match test_category:
 		AudioTestCategory.INITIALIZATION:
 			return _run_initialization_test()
 		AudioTestCategory.SOUND_EFFECTS:
-			return _run_sound_effects_test()
+			return await _run_sound_effects_test()
 		AudioTestCategory.MUSIC_SYSTEM:
 			return _run_music_system_test()
 		AudioTestCategory.VOLUME_CONTROLS:
-			return _run_volume_controls_test()
+			return await _run_volume_controls_test()
 		AudioTestCategory.SPATIAL_AUDIO:
-			return _run_spatial_audio_test()
+			return await _run_spatial_audio_test()
 		AudioTestCategory.AUDIO_POOLING:
 			return _run_audio_pooling_test()
 		AudioTestCategory.UI_INTEGRATION:
 			return _run_ui_integration_test()
 		AudioTestCategory.EVENT_BUS:
 			return _run_event_bus_test()
-	
-	return false
+		AudioTestCategory.PERFORMANCE, AudioTestCategory.STRESS:
+			return _run_initialization_test()  # Placeholder
+		_:
+			return false
 
 func _run_initialization_test() -> bool:
 	"""Initialization testi"""

@@ -66,9 +66,7 @@ func _setup_collision() -> void:
 	add_child(collision_component)
 
 func _physics_process(delta: float) -> void:
-	super._physics_process(delta)
-	
-	if not is_enabled:
+	if not is_active:
 		return
 	
 	# Update movement
@@ -295,4 +293,4 @@ func deserialize(data: Dictionary) -> void:
 # === DEBUG ===
 
 func _to_string() -> String:
-	return "[ProjectileEntity: %s, Damage: %.1f, Speed: %.0f]" % [entity_id, damage, speed]
+	return "[ProjectileEntity: %s, Damage: %.1f, Speed: %.0f]" % [entity_name, damage, speed]

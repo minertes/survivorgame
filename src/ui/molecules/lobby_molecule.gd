@@ -26,24 +26,20 @@ func _initialize() -> void:
 	content_manager = get_node_or_null("ContentManager")
 	player_data_manager = get_node_or_null("PlayerDataManager")
 	
-	# ComponentInitializer ve SignalRouter sahne script'i bazen yüklenmiyor; .tscn ile yükle (script sahneyle gelir)
-	var old_init = get_node_or_null("ComponentInitializer")
-	if old_init:
-		remove_child(old_init)
-		old_init.queue_free()
-	var old_router = get_node_or_null("SignalRouter")
-	if old_router:
-		remove_child(old_router)
-		old_router.queue_free()
+	# ComponentInitializer ve SignalRouter — sahnedekini kullan, yoksa yükle
+	component_initializer = get_node_or_null("ComponentInitializer")
+	if not component_initializer:
+		var init_scene = load("res://src/ui/molecules/core/component_initializer_node.tscn") as PackedScene
+		if init_scene:
+			component_initializer = init_scene.instantiate()
+			add_child(component_initializer)
 	
-	var init_scene = load("res://src/ui/molecules/core/component_initializer_node.tscn") as PackedScene
-	if init_scene:
-		component_initializer = init_scene.instantiate()
-		add_child(component_initializer)
-	var router_scene = load("res://src/ui/molecules/core/signal_router_node.tscn") as PackedScene
-	if router_scene:
-		signal_router = router_scene.instantiate()
-		add_child(signal_router)
+	signal_router = get_node_or_null("SignalRouter")
+	if not signal_router:
+		var router_scene = load("res://src/ui/molecules/core/signal_router_node.tscn") as PackedScene
+		if router_scene:
+			signal_router = router_scene.instantiate()
+			add_child(signal_router)
 	
 	# Geri ve Oyun başlat sinyallerini bağla
 	_connect_lobby_ui_signals()
@@ -70,12 +66,12 @@ func _initialize_atomic_components() -> void:
 		print("❌ ComponentInitializer script not loaded (missing initialize_components)")
 		return
 	
-	# Atomic bileşenleri başlat (senkron; await kaldırıldı — sinyal zaten emit edilmiş oluyordu)
+	# Atomic bileşenleri başlat (tab, karakter, silah, bayrak seçicileri)
 	component_initializer.initialize_components(content_manager)
 	
-	# Tab içeriğini seçili sekmeye göre tekrar göster (ContentManager _ready placeholder göstermiş olabilir)
+	# Tab içeriğini seçili sekmeye göre göster (layout bir frame sonra hazır olsun diye deferred)
 	if content_manager.has_method("show_tab") and content_manager.has_method("get_current_tab"):
-		content_manager.show_tab(content_manager.get_current_tab())
+		content_manager.call_deferred("show_tab", content_manager.get_current_tab())
 	
 	print("✅ Atomic components initialized")
 
@@ -137,25 +133,25 @@ func set_player_data(data: Dictionary) -> void:
 	if header_component and header_component.has_method("set_player_xp"):
 		header_component.set_player_xp(xp, false)
 	if content_manager:
-		var char_sel = content_manager.get("character_selector")
+		var char_sel = content_manager.character_selector
 		if char_sel and char_sel.has_method("set_player_data"):
 			char_sel.set_player_data(
 				xp,
 				data.get("owned_characters", ["male_soldier"]),
 				data.get("selected_character", "male_soldier"))
-		var wep_sel = content_manager.get("weapon_selector")
+		var wep_sel = content_manager.weapon_selector
 		if wep_sel and wep_sel.has_method("set_player_data"):
 			wep_sel.set_player_data(
 				xp,
 				data.get("owned_weapons", {"machinegun": 1}),
 				data.get("selected_weapon", "machinegun"))
-		var flag_sel = content_manager.get("flag_selector")
+		var flag_sel = content_manager.flag_selector
 		if flag_sel and flag_sel.has_method("set_player_data"):
 			flag_sel.set_player_data(
 				xp,
 				data.get("owned_flags", ["turkey"]),
 				data.get("selected_flag", "turkey"))
-		var stats = content_manager.get("stats_display")
+		var stats = content_manager.stats_display
 		if stats:
 			if stats.has_method("set_player_stats"):
 				stats.set_player_stats(data.get("stats", {}))
@@ -240,14 +236,17 @@ func update_player_stats(new_stats: Dictionary) -> void:
 		player_data_manager.update_stats(new_stats)
 
 func start_game() -> void:
-	var c = ""
-	var w = ""
-	var f = ""
+	var c := "male_soldier"
+	var w := "machinegun"
+	var f := "turkey"
 	if player_data_manager and player_data_manager.has_method("get_selected_items"):
 		var sel = player_data_manager.get_selected_items()
-		c = sel.get("character", "")
-		w = sel.get("weapon", "")
-		f = sel.get("flag", "")
+		c = sel.get("character", c)
+		w = sel.get("weapon", w)
+		f = sel.get("flag", f)
+		if c.is_empty(): c = "male_soldier"
+		if w.is_empty(): w = "machinegun"
+		if f.is_empty(): f = "turkey"
 	game_start_requested.emit(c, w, f)
 
 # === CLEANUP ===

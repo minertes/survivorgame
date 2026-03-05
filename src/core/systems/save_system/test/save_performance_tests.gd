@@ -4,7 +4,6 @@ class_name SavePerformanceTests
 extends "res://src/core/systems/save_system/test/save_test_base.gd"
 
 # === IMPORTS ===
-const SaveManager = preload("res://src/core/systems/save_system/save_manager.gd")
 const SaveSlotComponent = preload("res://src/core/systems/save_system/save_slot_component.gd")
 
 # === LIFECYCLE ===
@@ -64,7 +63,7 @@ func _test_performance_benchmark() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			test_slot,
 			game_state,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			float(i) * 60.0
 		) if save_component.has_method("create_save_data") else null
 		
@@ -159,7 +158,7 @@ func _test_stress_test() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			slot,
 			game_state,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			float(i) * 10.0
 		) if save_component.has_method("create_save_data") else null
 		

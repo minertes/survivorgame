@@ -1,3 +1,22 @@
+# 🎯 WEAPON COMPONENT
+# Silah yönetimi için component
+class_name WeaponComponent
+extends Component
+
+# === WEAPON STATE ===
+var current_weapon_id: String = ""
+var weapon_data: Dictionary = {}
+var current_ammo: int = 0
+var fire_cooldown: float = 0.0
+var is_firing: bool = false
+var upgrades: Array = []
+var weapon_kills: int = 0
+var evolution_level: int = 1
+
+# === SIGNALS (ek) ===
+signal ammo_changed(current: int, max_ammo: int)
+signal weapon_fired(weapon_id: String, target_position: Vector2)
+
 # === PROJECTILE SYSTEM ===
 var projectile_pool: Array = []  # Reusable projectiles
 var max_projectile_pool: int = 20
@@ -24,6 +43,27 @@ signal multishot_fired(projectiles: Array)
 signal critical_hit_occurred(damage: float, multiplier: float)
 
 # === PUBLIC API ===
+
+func _can_fire() -> bool:
+	return is_enabled and entity != null and not weapon_data.is_empty()
+
+func start_reload() -> void:
+	var mag = weapon_data.get("magazine_size", 1)
+	current_ammo = mag
+	ammo_changed.emit(current_ammo, mag)
+
+func get_stat(stat_name: String) -> float:
+	return float(weapon_data.get(stat_name, 0))
+
+func set_weapon(weapon_id: String) -> bool:
+	current_weapon_id = weapon_id
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg and cfg.has_method("get_weapon_config"):
+		weapon_data = cfg.get_weapon_config(weapon_id)
+	if weapon_data.is_empty():
+		weapon_data = {"damage": 10, "fire_rate": 1.0, "magazine_size": 1, "projectile_speed": 300, "projectile_lifetime": 3, "projectile_size": 1, "knockback": 0}
+	start_reload()
+	return true
 
 func fire(target_position: Vector2) -> bool:
 	if not _can_fire():
@@ -124,30 +164,27 @@ func _create_projectiles(target_position: Vector2) -> Array:
 
 func _create_single_projectile(start_position: Vector2, direction: Vector2) -> Node2D:
 	# Projectile entity oluştur
-	var projectile_scene = preload("res://src/gameplay/entities/projectile_entity.gd")
-	var projectile = projectile_scene.new()
-	
-	# Projectile özelliklerini ayarla
-	projectile.initialize({
+	var projectile = ProjectileEntity.new()
+	var config = {
 		"weapon_id": current_weapon_id,
 		"damage": get_projectile_damage(),
 		"speed": get_projectile_speed(),
-		"direction": direction,
 		"lifetime": get_projectile_lifetime(),
-		"size": get_projectile_size(),
 		"knockback": get_projectile_knockback(),
-		"pierce_count": pierce_count,
-		"homing_enabled": homing_enabled,
-		"homing_strength": homing_strength,
-		"source_entity": entity
-	})
-	
-	# Pozisyon ayarla
-	projectile.global_position = start_position
-	
-	# Scene'e ekle
-	if entity and entity.get_parent():
-		entity.get_parent().add_child(projectile)
+		"pierce": pierce_count,
+		"homing": homing_enabled,
+		"homing_strength": homing_strength
+	}
+	# Önce scene'e ekle (movement_component _ready'de oluşur)
+	var parent = entity.get_parent() if entity else null
+	if parent:
+		parent.add_child(projectile)
+	elif entity:
+		entity.add_child(projectile)
+	else:
+		get_tree().current_scene.add_child(projectile)
+	# Sonra initialize et (component'lar hazır olmalı)
+	projectile.initialize_projectile(config, entity, start_position, direction)
 	
 	# Event emit et
 	projectile_created.emit(projectile)
@@ -219,10 +256,11 @@ func _add_fire_stat() -> void:
 # === SERIALIZATION ===
 
 func serialize() -> Dictionary:
-	var data = super.serialize()
-	
-	# ... existing code ...
-
+	var data: Dictionary = {}
+	data["current_weapon_id"] = current_weapon_id
+	data["current_ammo"] = current_ammo
+	data["weapon_kills"] = weapon_kills
+	data["evolution_level"] = evolution_level
 	data["multishot_count"] = multishot_count
 	data["spread_angle"] = spread_angle
 	data["homing_enabled"] = homing_enabled
@@ -234,10 +272,14 @@ func serialize() -> Dictionary:
 	return data
 
 func deserialize(data: Dictionary) -> void:
-	super.deserialize(data)
-	
-	# ... existing code ...
-
+	if "current_weapon_id" in data:
+		set_weapon(data.current_weapon_id)
+	if "current_ammo" in data:
+		current_ammo = data.current_ammo
+	if "weapon_kills" in data:
+		weapon_kills = data.weapon_kills
+	if "evolution_level" in data:
+		evolution_level = data.evolution_level
 	if "multishot_count" in data:
 		multishot_count = data["multishot_count"]
 	if "spread_angle" in data:

@@ -92,7 +92,7 @@ class SaveData:
 
 # === SAVE METADATA STRUCTURE ===
 class SaveMetadata:
-	var save_time: Dictionary = {}  # OS.get_datetime() result
+	var save_time: Dictionary = {}  # Time.get_datetime_dict_from_system() result
 	var total_play_time: float = 0.0
 	var game_version: String = "1.0.0"
 	var checksum: String = ""
@@ -197,7 +197,7 @@ func update_slot_from_save_data(slot_data: SaveSlotData, save_data: SaveData) ->
 	
 	# Update basic info
 	slot_data.has_data = true
-	slot_data.last_save_time = Time.get_unix_time_from_datetime(metadata.save_time)
+	slot_data.last_save_time = Time.get_unix_time_from_datetime_dict(metadata.save_time)
 	slot_data.total_play_time = metadata.total_play_time
 	
 	# Update player info from game state

@@ -39,9 +39,14 @@ const STAT_UPGRADES := {
 		"name": "Zırh +8",       "desc": "Gelen her darbeden 8 hasar azaltır.",
 		"icon": "🛡",            "color": Color(0.35, 0.65, 1.0),
 	},
+	# Faz 2.2.3 – en az 10 upgrade (10. stat)
+	"bullet_speed": {
+		"name": "Mermi Hızı",    "desc": "Mermiler daha hızlı gider.",
+		"icon": "💨",            "color": Color(0.5, 0.9, 1.0),
+	},
 }
 
-# ── Silahlar ──────────────────────────────────────────────────
+# ── Silahlar (lobby weapon_selector ile uyumlu) ────────────────
 const WEAPONS := {
 	"sword": {
 		"name": "Kılıç",           "desc": "Yakın dövüş — çevredeki düşmanlara vurur.",
@@ -67,9 +72,21 @@ const WEAPONS := {
 		"name": "Sihir",           "desc": "Tüm yönlerde mermi fırlat!",
 		"icon": "✨",              "color": Color(0.75, 0.3, 1.0),
 	},
+	"magic_wand": {
+		"name": "Sihir Asası",     "desc": "360° mermi, büyü hasarı.",
+		"icon": "✨",              "color": Color(0.75, 0.3, 1.0),
+	},
 	"sniper": {
 		"name": "Keskin Nişancı",  "desc": "4× hasar, yavaş ateş.",
 		"icon": "🎯",              "color": Color(0.3, 0.75, 1.0),
+	},
+	"flamethrower": {
+		"name": "Alev Makinesi",   "desc": "Sürekli hasar, alan etkisi.",
+		"icon": "🔥",              "color": Color(1.0, 0.55, 0.1),
+	},
+	"rocket_launcher": {
+		"name": "Roket Atar",      "desc": "Patlama hasarı, alan etkisi.",
+		"icon": "🚀",              "color": Color(0.9, 0.5, 0.2),
 	},
 }
 
@@ -132,7 +149,7 @@ func _make_card(choice_id: String) -> Button:
 	if choice_id.begins_with("weapon_upgrade_"):
 		wid = choice_id.substr("weapon_upgrade_".length())
 		var next_lv: int = _player_ref.weapon_level + 1
-		var wd: Dictionary = WEAPONS[wid]
+		var wd: Dictionary = WEAPONS.get(wid, {"name": wid, "icon": "⚔️", "color": Color.WHITE})
 		info = {
 			"name": str(wd.get("name", "")) + " Lv" + str(next_lv),
 			"desc": "Silahını güçlendir! (Seviye " + str(next_lv) + "/3)",
@@ -141,11 +158,11 @@ func _make_card(choice_id: String) -> Button:
 		}
 	elif choice_id.begins_with("weapon_"):
 		wid = choice_id.substr(7)
-		var wd2: Dictionary = WEAPONS[wid]
+		var wd2: Dictionary = WEAPONS.get(wid, {"name": wid, "desc": "", "icon": "⚔️", "color": Color.WHITE})
 		info = wd2.duplicate()
 		info["name"] = "Silah: " + str(info.get("name", ""))
 	else:
-		var wd3: Dictionary = STAT_UPGRADES[choice_id]
+		var wd3: Dictionary = STAT_UPGRADES.get(choice_id, {"name": choice_id, "desc": "", "icon": "?", "color": Color.WHITE})
 		info = wd3.duplicate()
 
 	var btn := Button.new()
@@ -226,6 +243,8 @@ func _apply(choice_id: String) -> void:
 			_player_ref.crit_chance = minf(0.75, _player_ref.crit_chance + 0.15)
 		"armor":
 			_player_ref.armor = minf(50.0, _player_ref.armor + 8.0)
+		"bullet_speed":
+			_player_ref.bullet_speed = minf(1200.0, _player_ref.bullet_speed + 80.0)
 
 
 func _random_choices(count: int) -> Array[String]:
@@ -248,6 +267,8 @@ func _random_choices(count: int) -> Array[String]:
 		pool.erase("critical")
 	if _player_ref.armor >= 50.0:
 		pool.erase("armor")
+	if _player_ref.get("bullet_speed") != null and _player_ref.bullet_speed >= 1200.0:
+		pool.erase("bullet_speed")
 	if _player_ref.multi_shot:
 		pool.erase("multi_shot")
 

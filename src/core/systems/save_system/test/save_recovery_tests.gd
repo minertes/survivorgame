@@ -4,7 +4,6 @@ class_name SaveRecoveryTests
 extends "res://src/core/systems/save_system/test/save_test_base.gd"
 
 # === IMPORTS ===
-const SaveManager = preload("res://src/core/systems/save_system/save_manager.gd")
 const SaveSlotComponent = preload("res://src/core/systems/save_system/save_slot_component.gd")
 const SaveDataValidator = preload("res://src/core/systems/save_system/save_data_validator.gd")
 const LocalSaveHandler = preload("res://src/core/systems/save_system/local_save_handler.gd")
@@ -57,7 +56,7 @@ func _test_save_data_validation() -> Dictionary:
 			}
 		},
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 7200.0,
 			"game_version": "1.0.0",
 			"checksum": "test_checksum"
@@ -92,16 +91,18 @@ func _test_save_data_validation() -> Dictionary:
 	var invalid_result = validator.validate_save_data(invalid_save_data) if invalid_save_data != null and validator.has_method("validate_save_data") else {"success": false, "errors": ["Test skipped"]}
 	
 	# Test 3: Corrupted data simulation
+	var corrupted_result: Dictionary = {"success": false, "errors": ["Valid save data not available for corruption test"]}
 	if valid_save_data != null:
 		var corrupted_data = valid_save_data.to_dictionary() if valid_save_data.has_method("to_dictionary") else {}
 		corrupted_data["game_state"] = corrupted_data.get("game_state", {})
 		corrupted_data["game_state"]["player"] = corrupted_data["game_state"].get("player", {})
 		corrupted_data["game_state"]["player"]["health"] = NAN  # NaN value
 		
-		var corrupted_save_data = SaveSlotComponent.SaveData.from_dictionary(corrupted_data) if SaveSlotComponent.SaveData and SaveSlotComponent.SaveData.has_method("from_dictionary") else null
-		var corrupted_result = validator.validate_save_data(corrupted_save_data) if corrupted_save_data != null and validator.has_method("validate_save_data") else {"success": false, "errors": ["Test skipped"]}
-	else:
-		var corrupted_result = {"success": false, "errors": ["Valid save data not available for corruption test"]}
+		var corrupted_save_data = SaveSlotComponent.SaveData.from_dictionary(corrupted_data) if SaveSlotComponent and SaveSlotComponent.SaveData else null
+		if corrupted_save_data != null and validator.has_method("validate_save_data"):
+			corrupted_result = validator.validate_save_data(corrupted_save_data)
+		else:
+			corrupted_result = {"success": false, "errors": ["Test skipped"]}
 	
 	validator.queue_free()
 	
@@ -143,7 +144,7 @@ func _test_corruption_recovery() -> Dictionary:
 			"important_value": 42,
 			"array_data": [1, 2, 3, 4, 5]
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		123.45
 	) if save_component.has_method("create_save_data") else null
 	
@@ -176,7 +177,8 @@ func _test_corruption_recovery() -> Dictionary:
 	# 3. Return validation errors
 	
 	# Clean up
-	handler.delete_save_slot(999) if handler.has_method("delete_save_slot")
+	if handler.has_method("delete_save_slot"):
+		handler.delete_save_slot(999)
 	
 	handler.queue_free()
 	save_component.queue_free()

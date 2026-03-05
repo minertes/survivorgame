@@ -273,7 +273,7 @@ func test_save_slot_component() -> Dictionary:
 	
 	# Test save data creation
 	var game_state = {"test": "data"}
-	var save_time = OS.get_datetime()
+	var save_time = Time.get_datetime_dict_from_system()
 	var save_data = component.create_save_data(0, game_state, save_time, 3600.0)
 	
 	if save_data == null:
@@ -336,7 +336,7 @@ func test_save_serializer() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		0,
 		test_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		123.45
 	)
 	
@@ -398,7 +398,7 @@ func test_save_data_validator() -> Dictionary:
 				"game_time": 3600.5
 			}
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		3600.5
 	)
 	
@@ -419,7 +419,7 @@ func test_save_data_validator() -> Dictionary:
 				"experience": -100  # Negative experience
 			}
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		-100.0  # Negative play time
 	)
 	
@@ -471,7 +471,7 @@ func test_local_save_handler() -> Dictionary:
 			"timestamp": Time.get_ticks_msec(),
 			"message": "Test local save handler"
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	
@@ -602,7 +602,7 @@ func test_basic_save_load_cycle() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		test_game_state,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	
@@ -666,7 +666,7 @@ func test_multiple_save_slots() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			slot_index,
 			game_state,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			float(slot_index) * 3600.0
 		)
 		
@@ -749,7 +749,7 @@ func test_auto_save_system() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		game_state,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	
@@ -808,7 +808,7 @@ func test_save_data_validation() -> Dictionary:
 			}
 		},
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 7200.0,
 			"game_version": "1.0.0",
 			"checksum": "test_checksum"
@@ -881,7 +881,7 @@ func test_corruption_recovery() -> Dictionary:
 			"important_value": 42,
 			"array_data": [1, 2, 3, 4, 5]
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		123.45
 	)
 	
@@ -962,7 +962,7 @@ func test_performance_benchmark() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			test_slot,
 			game_state,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			float(i) * 60.0
 		)
 		
@@ -1049,7 +1049,7 @@ func test_stress_test() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			slot,
 			game_state,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			float(i) * 10.0
 		)
 		
@@ -1176,7 +1176,7 @@ func _test_scenario_game_progression() -> Dictionary:
 	var initial_save = save_component.create_save_data(
 		test_slot,
 		progression_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	
@@ -1194,7 +1194,7 @@ func _test_scenario_game_progression() -> Dictionary:
 	var progressed_save = save_component.create_save_data(
 		test_slot,
 		progression_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		3600.0  # 1 hour play time
 	)
 	
@@ -1250,7 +1250,7 @@ func _test_scenario_inventory() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		inventory_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		1800.0  # 30 minutes
 	)
 	
@@ -1266,7 +1266,7 @@ func _test_scenario_inventory() -> Dictionary:
 	var modified_save = save_component.create_save_data(
 		test_slot,
 		inventory_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		3600.0  # 1 hour
 	)
 	
@@ -1323,7 +1323,7 @@ func _test_scenario_multiple_profiles() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			profile.slot,
 			profile_data,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			0.0
 		)
 		
@@ -1407,7 +1407,7 @@ func _test_scenario_settings() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		settings_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	
@@ -1423,7 +1423,7 @@ func _test_scenario_settings() -> Dictionary:
 	var modified_save = save_component.create_save_data(
 		test_slot,
 		settings_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	
@@ -1473,7 +1473,7 @@ func _test_scenario_error_recovery() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		valid_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	)
 	

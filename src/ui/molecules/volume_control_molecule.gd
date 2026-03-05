@@ -83,9 +83,11 @@ func get_volume() -> int:
 	"""Current volume değerini al"""
 	return current_volume
 
-func toggle_mute(force_state: bool = null) -> void:
-	"""Mute/unmute toggle"""
-	var new_muted_state = not is_muted if force_state == null else force_state
+func toggle_mute(force_state: Variant = null) -> void:
+	"""Mute/unmute toggle — force_state null ise toggle, bool ise o değere ayarla"""
+	var new_muted_state: bool = not is_muted
+	if force_state != null and force_state is bool:
+		new_muted_state = force_state
 	
 	if new_muted_state != is_muted:
 		is_muted = new_muted_state

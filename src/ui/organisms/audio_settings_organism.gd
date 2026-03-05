@@ -84,10 +84,10 @@ func get_volume(bus_name: String) -> int:
 		return control.get_volume()
 	return 0
 
-func toggle_mute(bus_name: String, force_state: bool = null) -> void:
+func toggle_mute(bus_name: String, force_state: Variant = null) -> void:
 	"""Belirli bir bus için mute/unmute toggle"""
 	var control = _get_volume_control(bus_name)
-	if control:
+	if control and control.has_method("toggle_mute"):
 		control.toggle_mute(force_state)
 		settings_changed = true
 

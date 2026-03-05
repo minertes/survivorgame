@@ -37,7 +37,7 @@ extends Control
 
 # === NODES ===
 @onready var texture_rect: TextureRect = $TextureRect
-@onready var color_tween: Tween = $ColorTween
+var _color_tween: Tween
 
 # === STATE ===
 var original_color: Color = Color.WHITE
@@ -69,7 +69,15 @@ func set_icon(new_texture: Texture2D) -> void:
 	_update_icon()
 	icon_changed.emit(new_texture)
 
-func set_size(new_size: Vector2) -> void:
+func set_icon_from_path(path: String) -> void:
+	"""Dosya yolundan Texture2D yükleyip ikon ayarla"""
+	if path.is_empty():
+		return
+	var tex := load(path) as Texture2D
+	if tex:
+		set_icon(tex)
+
+func set_icon_size(new_size: Vector2) -> void:
 	icon_size = new_size
 	_update_size()
 	size_changed.emit(new_size)
@@ -97,7 +105,7 @@ func load_config(config_id: String) -> void:
 func get_icon() -> Texture2D:
 	return icon_texture
 
-func get_size() -> Vector2:
+func get_icon_size() -> Vector2:
 	return icon_size
 
 func get_color() -> Color:
@@ -162,30 +170,30 @@ func _update_color() -> void:
 # === ANIMATIONS ===
 
 func _animate_color_change(from_color: Color, to_color: Color) -> void:
-	if color_tween and color_tween.is_valid():
-		color_tween.kill()
+	if _color_tween and _color_tween.is_valid():
+		_color_tween.kill()
 	
-	color_tween = create_tween()
-	color_tween.tween_method(_set_animated_color, from_color, to_color, 0.3)
-	color_tween.set_ease(Tween.EASE_IN_OUT)
-	color_tween.set_trans(Tween.TRANS_CUBIC)
+	_color_tween = create_tween()
+	_color_tween.tween_method(_set_animated_color, from_color, to_color, 0.3)
+	_color_tween.set_ease(Tween.EASE_IN_OUT)
+	_color_tween.set_trans(Tween.TRANS_CUBIC)
 
 func _set_animated_color(color: Color) -> void:
 	icon_color = color
 	_update_color()
 
 func pulse_color(pulse_color: Color, duration: float = 0.5) -> void:
-	if color_tween and color_tween.is_valid():
-		color_tween.kill()
+	if _color_tween and _color_tween.is_valid():
+		_color_tween.kill()
 	
 	var original = icon_color
 	
-	color_tween = create_tween()
-	color_tween.tween_method(_set_animated_color, original, pulse_color, duration / 2)
-	color_tween.tween_method(_set_animated_color, pulse_color, original, duration / 2)
+	_color_tween = create_tween()
+	_color_tween.tween_method(_set_animated_color, original, pulse_color, duration / 2)
+	_color_tween.tween_method(_set_animated_color, pulse_color, original, duration / 2)
 	
-	color_tween.set_ease(Tween.EASE_IN_OUT)
-	color_tween.set_trans(Tween.TRANS_CUBIC)
+	_color_tween.set_ease(Tween.EASE_IN_OUT)
+	_color_tween.set_trans(Tween.TRANS_CUBIC)
 
 # === UTILITY ===
 

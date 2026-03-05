@@ -16,11 +16,13 @@ var is_initialized: bool = false
 # === LIFECYCLE ===
 
 func _ready() -> void:
-	print("LobbyMoleculeBase initializing...")
+	if has_node("/root/Log"):
+		Log.info("LobbyMoleculeBase: initializing")
 	_initialize()
 	is_initialized = true
 	lobby_initialized.emit()
-	print("LobbyMoleculeBase initialized successfully")
+	if has_node("/root/Log"):
+		Log.info("LobbyMoleculeBase: initialized")
 
 # === PUBLIC API ===
 

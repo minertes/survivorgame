@@ -55,8 +55,11 @@ func _draw() -> void:
 	var bob   := sin(_anim_time * 3.5) * 3.0
 	var pulse := sin(_anim_time * 4.2) * 0.15 + 0.85
 
-	# AssetDB'den texture dene
-	var tex: Texture2D = AssetDB.get_pickup_icon("health")
+	# AssetDB'den texture dene (varsa)
+	var tex: Texture2D = null
+	var adb = get_node_or_null("/root/AssetDB")
+	if adb and adb.has_method("get_pickup_icon"):
+		tex = adb.get_pickup_icon("health")
 	if tex != null:
 		draw_texture_rect(tex,
 			Rect2(Vector2(-20.0, -20.0 + bob), Vector2(40.0, 40.0)), false)

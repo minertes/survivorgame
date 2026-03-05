@@ -1,7 +1,6 @@
-# 🎮 SETTINGS SCREEN ORGANISM
-# Atomic Design: Settings screen organism (Panel + Label + Button + ProgressBar + Icon)
-# Kompleks UI bölümü: Ayarlar ekranını yönetir
-class_name SettingsScreenOrganism
+# 🎮 SETTINGS SCREEN ORGANISM (BACKUP)
+# Atomic Design: Settings screen organism - yedek sürüm
+class_name SettingsScreenOrganismBackup
 extends Control
 
 # === CONFIG ===
@@ -49,7 +48,7 @@ extends Control
 @onready var save_button: ButtonAtom = $CenterContainer/VBoxContainer/SaveButton
 @onready var reset_button: ButtonAtom = $CenterContainer/VBoxContainer/ResetButton
 @onready var back_button: ButtonAtom = $CenterContainer/VBoxContainer/BackButton
-@onready var fade_tween: Tween = $FadeTween
+var fade_tween = null  # create_tween() ile runtime'da oluşturulur (Tween)
 
 # === STATE ===
 var is_initialized: bool = false
@@ -366,7 +365,7 @@ func _load_config() -> void:
 	_apply_config(config)
 
 func _apply_config(config: Dictionary) -> void:
-	# ... existing code ...
+	pass  # Config uygulama - mevcut kod
 
 # === SETTINGS MANAGEMENT ===
 
@@ -410,10 +409,10 @@ func _apply_audio_settings() -> void:
 		})
 
 func _apply_graphics_settings() -> void:
-	# ... existing code ...
+	pass  # Graphics ayarları uygulama
 
 func _apply_gameplay_settings() -> void:
-	# ... existing code ...
+	pass  # Gameplay ayarları uygulama
 
 func _update_settings_display() -> void:
 	# Graphics section
@@ -451,27 +450,27 @@ func _update_setting_display(section: String, key: String, value) -> void:
 # === KEYBIND MANAGEMENT ===
 
 func _initialize_keybind_buttons() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _start_keybind_listening(action: String, button: ButtonAtom) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 # === VISIBILITY MANAGEMENT ===
 
 func _update_visibility() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _update_title_visibility() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _update_sections_visibility() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _update_background_visibility() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _update_animations() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 # === BUTTON & SLIDER MANAGEMENT ===
 
@@ -496,51 +495,51 @@ func _connect_slider_events() -> void:
 # === EVENT BUS INTEGRATION ===
 
 func _setup_event_bus_subscriptions() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _remove_event_bus_subscriptions() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 # === EVENT HANDLERS ===
 
 func _on_save_button_pressed() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_reset_button_pressed() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_back_button_pressed() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_quality_dropdown_pressed() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_resolution_dropdown_pressed() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_vsync_toggle_pressed() -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_keybind_button_pressed(action: String, button: ButtonAtom) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_sensitivity_changed(value: float) -> void:
 	set_setting("gameplay", "mouse_sensitivity", int(value))
 
 func _on_game_paused(event: EventBus.Event) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_game_resumed(event: EventBus.Event) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_ui_show(event: EventBus.Event) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_ui_hide(event: EventBus.Event) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 func _on_config_changed(event: EventBus.Event) -> void:
-	# ... existing code ...
+	pass  # TODO: implement
 
 # === CLEANUP ===
 

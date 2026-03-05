@@ -264,7 +264,7 @@ func test_cycle(test_data: Dictionary = {}) -> Dictionary:
 		0,
 		test_data,
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 123.45,
 			"game_version": "1.0.0"
 		}
@@ -371,19 +371,19 @@ func _compress_gzip(bytes: PackedByteArray) -> Dictionary:
 	return {"success": true, "bytes": compressed}
 
 func _decompress_gzip(bytes: PackedByteArray) -> Dictionary:
-	var decompressed = bytes.decompress(FileAccess.COMPRESSION_GZIP)
+	var decompressed = bytes.decompress_dynamic(64 * 1024 * 1024, FileAccess.COMPRESSION_GZIP)
 	if decompressed.is_empty():
 		return {"success": false, "error": "GZIP decompression failed"}
 	return {"success": true, "bytes": decompressed}
 
 func _compress_zlib(bytes: PackedByteArray) -> Dictionary:
-	var compressed = bytes.compress(FileAccess.COMPRESSION_ZLIB)
+	var compressed = bytes.compress(FileAccess.COMPRESSION_DEFLATE)
 	if compressed.is_empty():
 		return {"success": false, "error": "ZLIB compression failed"}
 	return {"success": true, "bytes": compressed}
 
 func _decompress_zlib(bytes: PackedByteArray) -> Dictionary:
-	var decompressed = bytes.decompress(FileAccess.COMPRESSION_ZLIB)
+	var decompressed = bytes.decompress_dynamic(64 * 1024 * 1024, FileAccess.COMPRESSION_DEFLATE)
 	if decompressed.is_empty():
 		return {"success": false, "error": "ZLIB decompression failed"}
 	return {"success": true, "bytes": decompressed}
@@ -395,7 +395,7 @@ func _compress_deflate(bytes: PackedByteArray) -> Dictionary:
 	return {"success": true, "bytes": compressed}
 
 func _decompress_deflate(bytes: PackedByteArray) -> Dictionary:
-	var decompressed = bytes.decompress(FileAccess.COMPRESSION_DEFLATE)
+	var decompressed = bytes.decompress_dynamic(64 * 1024 * 1024, FileAccess.COMPRESSION_DEFLATE)
 	if decompressed.is_empty():
 		return {"success": false, "error": "Deflate decompression failed"}
 	return {"success": true, "bytes": decompressed}
@@ -556,7 +556,7 @@ func benchmark_serialization(test_iterations: int = 100, data_size: int = 1024) 
 			0,
 			test_data,
 			{
-				"save_time": OS.get_datetime(),
+				"save_time": Time.get_datetime_dict_from_system(),
 				"total_play_time": float(i),
 				"game_version": "1.0.0"
 			}

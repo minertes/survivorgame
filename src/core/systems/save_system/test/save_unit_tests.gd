@@ -4,7 +4,6 @@ class_name SaveUnitTests
 extends "res://src/core/systems/save_system/test/save_test_base.gd"
 
 # === IMPORTS ===
-const SaveManager = preload("res://src/core/systems/save_system/save_manager.gd")
 const SaveSlotComponent = preload("res://src/core/systems/save_system/save_slot_component.gd")
 const SaveSerializer = preload("res://src/core/systems/save_system/save_serializer.gd")
 const SaveDataValidator = preload("res://src/core/systems/save_system/save_data_validator.gd")
@@ -85,7 +84,7 @@ func _test_save_slot_component() -> Dictionary:
 	
 	# Test save data creation
 	var game_state = {"test": "data"}
-	var save_time = OS.get_datetime()
+	var save_time = Time.get_datetime_dict_from_system()
 	var save_data = component.create_save_data(0, game_state, save_time, 3600.0) if component.has_method("create_save_data") else null
 	
 	if save_data == null:
@@ -157,7 +156,7 @@ func _test_save_serializer() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		0,
 		test_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		123.45
 	) if save_component.has_method("create_save_data") else null
 	
@@ -228,7 +227,7 @@ func _test_save_data_validator() -> Dictionary:
 				"game_time": 3600.5
 			}
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		3600.5
 	) if save_component.has_method("create_save_data") else null
 	
@@ -252,7 +251,7 @@ func _test_save_data_validator() -> Dictionary:
 				"experience": -100  # Negative experience
 			}
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		-100.0  # Negative play time
 	) if save_component.has_method("create_save_data") else null
 	
@@ -312,7 +311,7 @@ func _test_local_save_handler() -> Dictionary:
 			"timestamp": Time.get_ticks_msec(),
 			"message": "Test local save handler"
 		},
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	

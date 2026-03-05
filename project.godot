@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="SURVIVORGAME"
+config/version="1.0.0"
 run/main_scene="res://menu.tscn"
 config/features=PackedStringArray("4.6")
 config/icon="res://icon.svg"
@@ -18,9 +19,19 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Log="*res://src/core/utils/log_boot.gd"
+EnvConfig="*res://src/core/systems/env_config.gd"
 AudioSystem="*res://src/core/systems/audio_system_wrapper.gd"
 GameState="*res://game_state.gd"
 GameData="*res://game_data.gd"
+AnalyticsService="*res://src/core/systems/analytics_service.gd"
+BackendService="*res://src/core/systems/backend_service.gd"
+CrashReporter="*res://src/core/systems/crash_reporter.gd"
+IAPService="*res://src/core/systems/iap_service.gd"
+AdService="*res://src/core/systems/ad_service.gd"
+LeaderboardService="*res://src/core/systems/leaderboard_service.gd"
+AchievementsService="*res://src/core/systems/achievements_service.gd"
+ShareService="*res://src/core/systems/share_service.gd"
 
 [display]
 

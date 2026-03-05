@@ -1,0 +1,39 @@
+---
+description: Ana uygulama planı ve hangi planın/kuralların geçerli olduğu – yeni context'te "ana planı uygula" denince bu kural kullanılır
+alwaysApply: false
+---
+# Ana Plan ve Kurallar
+
+## Ana plan hangisi?
+
+- **Ana plan (birleşik uygulama planı):** `UYGULAMA_PLANI_BIRLESIK.md`
+- Kullanıcı **"ana planı uygula"**, **"birleşik planı uygula"** veya **"planı uygula"** dediğinde **sadece bu dosyayı** esas al; Faz 0–7 ve bu dosyadaki denetim/süreç maddelerini uygula.
+
+## Bu ana plana bağlı kurallar
+
+Aşağıdaki Cursor kuralları ana planla birlikte geçerlidir; ilgili işlerde mutlaka uygula:
+
+| Kural | Ne zaman |
+|--------|----------|
+| **faz-sonrasi-denetim.mdc** | Her faz tamamlandığında; denetim bitmeden sonraki faza geçilmez |
+| **ui-denetim.mdc** | UI/görsel değişiklik yapıldığında; checklist ve onay süreci |
+
+İlişkili dokümanlar:
+- Faz sonrası denetim checklist: `docs/FAZ_SONRASI_DENETIM.md`
+- Denetim ve onay süreci: `docs/DENETIM_ONAY_SURECI.md`
+- Görsel tasarım checklist: `docs/GORSEL_TASARIM_CHECKLIST.md`
+- Planların listesi ve konumları: `docs/PLANLAR_VE_KURALLAR.md`
+
+## Birlikte kullanılan plan
+
+- **Oyun Tasarımı & Gelir Modeli:** `OYUN_TASARIMI_GELIR_MODELI_PLANI.md`  
+  Ana plandaki "Oyun Tasarımı ile Eşleşme" ve içerik/karakter/silah/düşman maddeleri bu planla birlikte güncellenir. Ana planı uygularken ilgili maddelerde bu dosyaya da bak.
+
+## Diğer planlar (referans / isteğe bağlı)
+
+Kök dizini sade tutmak ve karışıklığı önlemek için **referans planlar** `archive/` altındadır. Yeni context'te "ana planı uygula" denince **archive içindeki planları otomatik dahil etme**; kullanıcı açıkça "REALISTIC_20K uygula" veya "Enterprise planını uygula" derse ilgili dosyayı kullan.
+
+- Kaynak planlar (DeepSeek vb.): `archive/REALISTIC_20K_PLAN/`
+- Enterprise / production hazırlık: `archive/ENTERPRISE_*.md`, `archive/production_ready_plan.md`
+
+Özet: **Tek uygulama planı = UYGULAMA_PLANI_BIRLESIK.md**; diğer planlar referans veya kullanıcı özel talebiyle devreye girer.

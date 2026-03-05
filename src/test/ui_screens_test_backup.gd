@@ -1,6 +1,6 @@
 # 🧪 UI SCREENS TEST
 # UI Screen component'larını ve navigation sistemini test eder
-class_name UIScreensTest
+class_name UIScreensTestBackup
 extends Node
 
 # === NODES ===

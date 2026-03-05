@@ -88,7 +88,7 @@ Faz 4: Kararlılık (Ay 10-12)
    - İlerleme hissi veren yükseltmeler
 
 2. **Minimum Viable Product (MVP)**
-   - 1 karakter, 3 silah, 5 düşman türü
+   -  1 karakter, 3 silah, 5 düşman türü veya mevcut durum.
    - Temel ilerleme sistemi
    - Basit UI/UX
    - Offline oynanabilir

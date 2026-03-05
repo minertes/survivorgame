@@ -724,7 +724,7 @@ func test_file_operations() -> Dictionary:
 			"message": "Test save data"
 		},
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 0.0,
 			"game_version": "1.0.0"
 		}
@@ -793,7 +793,7 @@ func benchmark_file_operations(iterations: int = 10) -> Dictionary:
 				"data": "x".repeat(1000 + i * 100)  # Varying data size
 			},
 			{
-				"save_time": OS.get_datetime(),
+				"save_time": Time.get_datetime_dict_from_system(),
 				"total_play_time": float(i) * 60.0,
 				"game_version": "1.0.0"
 			}

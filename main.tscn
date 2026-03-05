@@ -31,12 +31,12 @@ theme_override_constants/separation = 6
 [node name="WaveLabel" type="Label" parent="UI/HUD"]
 text = "Dalga 1"
 theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(1, 1, 0.2, 1)
+theme_override_colors/font_color = Color(0.95, 0.9, 0.35, 1)
 
 [node name="HealthLabel" type="Label" parent="UI/HUD"]
 text = "CAN"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_colors/font_color = Color(0.95, 0.4, 0.4, 1)
 
 [node name="HealthBar" type="ProgressBar" parent="UI/HUD"]
 custom_minimum_size = Vector2(210, 22)
@@ -47,7 +47,7 @@ show_percentage = false
 [node name="XPLabel" type="Label" parent="UI/HUD"]
 text = "DENEYİM"
 theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+theme_override_colors/font_color = Color(0.5, 0.85, 1, 1)
 
 [node name="XPBar" type="ProgressBar" parent="UI/HUD"]
 custom_minimum_size = Vector2(210, 22)
@@ -58,4 +58,4 @@ show_percentage = false
 [node name="LevelLabel" type="Label" parent="UI/HUD"]
 text = "Seviye 1"
 theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+theme_override_colors/font_color = Color(0.4, 0.95, 0.55, 1)

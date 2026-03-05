@@ -50,20 +50,13 @@ func _ready() -> void:
 
 # === PUBLIC API ===
 
-func run_all_tests() -> Dictionary:
+func run_all_tests() -> void:
 	if is_testing:
-		return {"success": false, "error": "Already testing"}
+		return
 	
 	is_testing = true
 	_reset_test_state()
 	_start_all_tests()
-	
-	# Return promise-like result
-	return {
-		"success": true,
-		"message": "Tests started",
-		"total_modules": test_modules.size()
-	}
 
 func run_specific_module(module_name: String) -> Dictionary:
 	for module_info in test_modules:

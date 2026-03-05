@@ -18,9 +18,9 @@ class ValidationRule:
 	var min_value: Variant = null
 	var max_value: Variant = null
 	var required: bool = true
-	var custom_validator: Callable = null
+	var custom_validator: Variant = null
 	
-	func _init(path: String, type: int, req: bool = true, min_val: Variant = null, max_val: Variant = null, validator: Callable = null):
+	func _init(path: String, type: int, req: bool = true, min_val: Variant = null, max_val: Variant = null, validator: Variant = null):
 		field_path = path
 		expected_type = type
 		required = req
@@ -62,10 +62,12 @@ class ValidationRule:
 				errors.append("Value %.2f above maximum %.2f" % [value, max_value])
 		
 		# Custom validation
-		if custom_validator != null and custom_validator.is_valid():
-			var custom_result = custom_validator.call(value, context)
-			if custom_result is Dictionary and not custom_result.get("valid", true):
-				errors.append_array(custom_result.get("errors", []))
+		if custom_validator != null and custom_validator is Callable:
+			var c := custom_validator as Callable
+			if c.is_valid():
+				var custom_result = c.call(value, context)
+				if custom_result is Dictionary and not custom_result.get("valid", true):
+					errors.append_array(custom_result.get("errors", []))
 		
 		return {
 			"valid": errors.is_empty(),
@@ -345,7 +347,7 @@ func test_validation() -> Dictionary:
 			}
 		},
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 3600.5,
 			"game_version": "1.0.0",
 			"checksum": "test_checksum"
@@ -828,7 +830,7 @@ func benchmark_validation(test_iterations: int = 100) -> Dictionary:
 			}
 		},
 		{
-			"save_time": OS.get_datetime(),
+			"save_time": Time.get_datetime_dict_from_system(),
 			"total_play_time": 7200.0,
 			"game_version": "1.0.0",
 			"checksum": "benchmark_checksum"

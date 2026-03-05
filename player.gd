@@ -3,6 +3,9 @@ extends CharacterBody2D
 const BULLET_SCENE      = preload("res://bullet.tscn")
 const HIT_EFFECT_SCRIPT = preload("res://hit_effect.gd")
 
+# Faz 2.1.2 – Mermi havuzu (opsiyonel; main sahnesi atar)
+var bullet_pool: Node = null
+
 # ── Temel istatistikler ────────────────────────────────────────
 var max_health   := 100.0
 var health       := 100.0
@@ -38,7 +41,9 @@ const WEAPON_FIRE_RATES := {
 	"shotgun":    1.10,
 	"machinegun": 0.10,
 	"magic":      1.80,
+	"magic_wand": 1.80,
 	"sniper":     2.40,
+	"flamethrower": 0.05,
 }
 
 # ── Animasyon ─────────────────────────────────────────────────
@@ -58,6 +63,9 @@ var joystick_input := Vector2.ZERO
 # ── Hedef ─────────────────────────────────────────────────────
 var target_enemy: Node2D = null
 
+# Günlük meydan okuma: oyuncu hasar çarpanı (main.gd'den set edilir)
+var damage_multiplier: float = 1.0
+
 signal health_changed(new_health: float, max_h: float)
 signal lives_changed(new_lives: int)
 signal xp_changed(cur_xp: int, needed: int, lvl: int)
@@ -74,22 +82,45 @@ func _play_sound(sound_name: String) -> void:
 func _ready() -> void:
 	add_to_group("player")
 
-	match GameData.selected_character:
-		"male":
-			max_health = 1000.0
-			health     = 1000.0
-			speed      = 175.0
-			damage     = 35.0
-			weapon_id  = GameData.equipped_weapon_male
-		"female":
-			max_health = 1000.0
-			health     = 1000.0
-			speed      = 250.0
-			damage     = 20.0
-			fire_rate  = 0.42
-			weapon_id  = GameData.equipped_weapon_female
+	var gd = get_node_or_null("/root/GameData")
+	if not gd:
+		# GameData autoload yüklenemediyse varsayılanlarla devam et
+		weapon_id = "machinegun"
+		max_health = 160.0
+		health = max_health
+		speed = 175.0
+		damage = 35.0
+		_apply_weapon(weapon_id)
+		$ShootTimer.timeout.connect(_on_shoot_timer_timeout)
+		$ShootTimer.start()
+		var cam := Camera2D.new()
+		cam.zoom = Vector2(1.8, 1.8)
+		cam.position_smoothing_enabled = true
+		cam.position_smoothing_speed = 8.0
+		add_child(cam)
+		return
 
-	weapon_level = int(GameData.owned_weapons.get(weapon_id, 1))
+	# Karakter ve silah GameData'dan (Faz 7.4 – medic, flamethrower dahil)
+	weapon_id = gd.equipped_weapon
+	var char_data = gd.CHARACTERS.get(gd.selected_character, gd.CHARACTERS["male_soldier"])
+	if char_data:
+		var st = char_data.get("stats", {})
+		max_health = float(st.get("health", 160))
+		health = max_health
+		speed = 175.0 * float(st.get("speed", 1.0))
+		damage = 35.0
+	var wd = gd.WEAPONS.get(weapon_id, {})
+	if wd:
+		var mults: Array = wd.get("upgrade_multipliers", [1.0])
+		weapon_level = int(gd.owned_weapons.get(weapon_id, 1))
+		weapon_level = clampi(weapon_level, 1, mults.size())
+	else:
+		weapon_level = int(gd.owned_weapons.get(weapon_id, 1))
+	# Prestij bonusu kalıcı hasar/can artışı
+	var prestige_mult: float = gd.get_prestige_bonus()
+	damage *= prestige_mult
+	max_health *= prestige_mult
+	health = max_health
 
 	var cam := Camera2D.new()
 	cam.zoom = Vector2(1.8, 1.8)
@@ -101,8 +132,8 @@ func _ready() -> void:
 	$ShootTimer.timeout.connect(_on_shoot_timer_timeout)
 	$ShootTimer.start()
 
-	GameState.selected_character = GameData.selected_character
-	GameState.sound_enabled      = GameData.sound_enabled
+	if has_node("/root/GameState"):
+		GameState.sound_enabled = gd.sound_enabled
 
 
 func _apply_weapon(wid: String) -> void:
@@ -146,10 +177,23 @@ func _physics_process(delta: float) -> void:
 
 func _handle_movement() -> void:
 	var direction := Vector2.ZERO
+	# Yön tuşları + WASD + joystick
 	direction.x = Input.get_axis("ui_left", "ui_right")
 	direction.y = Input.get_axis("ui_up", "ui_down")
+	# WASD desteği (ui_* sadece yön tuşlarıysa)
+	if direction == Vector2.ZERO:
+		if Input.is_physical_key_pressed(KEY_A): direction.x -= 1
+		if Input.is_physical_key_pressed(KEY_D): direction.x += 1
+		if Input.is_physical_key_pressed(KEY_W): direction.y -= 1
+		if Input.is_physical_key_pressed(KEY_S): direction.y += 1
 	if joystick_input.length() > 0.1:
 		direction = joystick_input
+	# Mouse ile hareket: sağ tık basılıyken fareye doğru hareket
+	if direction == Vector2.ZERO and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		var mouse_pos = get_global_mouse_position()
+		var to_mouse = mouse_pos - global_position
+		if to_mouse.length() > 20.0:
+			direction = to_mouse.normalized()
 	if direction != Vector2.ZERO:
 		direction = direction.normalized()
 	velocity = direction * speed
@@ -190,7 +234,9 @@ func _draw() -> void:
 	var fx  := 1.0 if _facing_right else -1.0
 
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(fx, 1.0))
-	if GameData.selected_character == "male":
+	var gd = get_node_or_null("/root/GameData")
+	var sel: String = gd.selected_character if gd else "male_soldier"
+	if sel == "male":
 		_draw_warrior(bob)
 	else:
 		_draw_hunter(bob)
@@ -338,6 +384,9 @@ func _draw_weapon_icon(bob: float) -> void:
 			draw_rect(Rect2(13, -3 + bob, 28, 6), Color(0.42, 0.42, 0.48))
 			draw_rect(Rect2(13, -5 + bob,  6, 3), Color(0.52, 0.52, 0.58))
 			draw_rect(Rect2(32, -5 + bob,  8, 3), Color(0.55, 0.55, 0.60))
+		"flamethrower":
+			draw_rect(Rect2(12, -5 + bob, 16, 10), Color(0.7, 0.35, 0.1))
+			draw_rect(Rect2(20, -2 + bob,  6,  4), Color(1.0, 0.5, 0.0))
 
 
 # ── İsabet efekti ─────────────────────────────────────────────
@@ -349,18 +398,28 @@ func _spawn_hit_effect(pos: Vector2, color: Color, radius: float, slash: bool = 
 	fx.setup(color, radius, slash)
 
 
-# ── Mermi ─────────────────────────────────────────────────────
+# ── Mermi (havuz varsa havuzdan, yoksa yeni instance) ──────────
 func _fire_bullet(dir: Vector2, dmg_mult: float) -> void:
-	var bullet := BULLET_SCENE.instantiate()
-	bullet.global_position = global_position
-	bullet.direction       = dir
-	var base_dmg := damage * dmg_mult * (1.0 + (weapon_level - 1) * 0.45)
+	var bullet: Node = null
+	if bullet_pool and bullet_pool.has_method("get_bullet"):
+		bullet = bullet_pool.get_bullet()
+	if bullet == null:
+		bullet = BULLET_SCENE.instantiate()
+		get_parent().add_child(bullet)
+	var base_dmg := damage * dmg_mult * (1.0 + (weapon_level - 1) * 0.45) * damage_multiplier
 	if crit_chance > 0.0 and randf() < crit_chance:
 		base_dmg *= 3.0
-	bullet.damage      = base_dmg
-	bullet.speed       = bullet_speed
-	bullet.weapon_type = weapon_id
-	get_parent().add_child(bullet)
+	bullet.global_position = global_position
+	bullet.direction       = dir
+	bullet.damage          = base_dmg
+	bullet.speed           = bullet_speed
+	bullet.weapon_type      = weapon_id
+	bullet.visible          = true
+	# Düşmanlar layer 2'de — mermi mask 2 olmalı ki çarpışma olsun
+	bullet.collision_layer  = 4
+	bullet.collision_mask   = 2
+	if bullet.has_method("restart_timer"):
+		bullet.restart_timer()
 
 
 func _on_shoot_timer_timeout() -> void:
@@ -376,7 +435,7 @@ func _on_shoot_timer_timeout() -> void:
 				if not is_instance_valid(e):
 					continue
 				if global_position.distance_to(e.global_position) <= attack_range:
-					e.take_damage(damage * (1.0 + (weapon_level - 1) * 0.5))
+					e.take_damage(damage * (1.0 + (weapon_level - 1) * 0.5) * damage_multiplier)
 					if life_steal > 0.0:
 						health = minf(max_health, health + life_steal * 0.5)
 						health_changed.emit(health, max_health)
@@ -429,8 +488,20 @@ func _on_shoot_timer_timeout() -> void:
 				_fire_bullet(dir.rotated(0.08), 2.5)
 			_play_sound("shoot")
 
+		"flamethrower":
+			if not has_target: return
+			for i in 3:
+				_fire_bullet(dir.rotated(randf_range(-0.15, 0.15)), 0.5)
+			_play_sound("shoot")
+
+		"magic_wand":
+			var count := 6 + (weapon_level - 1) * 2
+			for i in count:
+				_fire_bullet(Vector2.RIGHT.rotated(i * TAU / count), 0.65)
+			_play_sound("shoot")
+
 	# Sihir halkası — silahını değiştirmeden ek mermi
-	if bonus_magic and weapon_id != "magic":
+	if bonus_magic and weapon_id != "magic" and weapon_id != "magic_wand":
 		for i in bonus_magic_count:
 			_fire_bullet(Vector2.RIGHT.rotated(i * TAU / bonus_magic_count), 0.30)
 

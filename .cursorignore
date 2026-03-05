@@ -1,0 +1,62 @@
+﻿# ===== Referans planlar =====
+archive/
+# ===== Godot: cache ve uretilen dosyalar =====
+.godot/
+.import/
+*.uid
+*.import
+*.translation
+.mono/
+*.ctex
+*.stex
+*.md5
+# ===== Build / cikti =====
+*.exe
+*.pck
+*.zip
+*.rar
+*.7z
+*.apk
+*.aab
+*.ipa
+*.dll
+*.so
+*.dylib
+export_presets.cfg
+export_templates/
+builds/
+release/
+dist/
+# ===== Gecici / yedek =====
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+.cache/
+# ===== Medya (binary, index gereksiz) =====
+*.wav
+*.ogg
+*.mp3
+*.mp4
+*.webm
+*.avi
+# ===== Log / profil =====
+*.log
+*.prof
+*.profile
+debug.log
+crash.log
+logs/
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+# ===== Hassas (okunmasin) =====
+*.env
+*.secret
+*.key
+*.pem
+*.crt

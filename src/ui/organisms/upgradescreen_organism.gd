@@ -51,7 +51,7 @@ extends Control
 @onready var cost_label: LabelAtom = $CenterContainer/VBoxContainer/CostLabel
 @onready var upgrade_button: ButtonAtom = $CenterContainer/VBoxContainer/UpgradeButton
 @onready var back_button: ButtonAtom = $CenterContainer/VBoxContainer/BackButton
-@onready var fade_tween: Tween = $FadeTween
+var fade_tween: Tween
 
 # === STATE ===
 var is_initialized: bool = false

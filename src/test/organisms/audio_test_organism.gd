@@ -90,9 +90,9 @@ func run_all_tests() -> void:
 		print("AudioTestOrganism: Already testing!")
 		return
 	
-	print("\n" + "="*50)
+	print("\n" + "=".repeat(50))
 	print("AUDIO TEST SUITE STARTING")
-	print("="*50)
+	print("=".repeat(50))
 	
 	is_testing = true
 	current_test_index = 0
@@ -113,8 +113,8 @@ func run_all_tests() -> void:
 		var progress = float(i) / float(total_tests)
 		audio_test_progress.emit(category, progress, "Starting test %d/%d" % [i + 1, total_tests])
 		
-		# Testi çalıştır
-		var test_result = _run_single_test(category)
+		# Testi çalıştır (coroutine - await gerekli)
+		var test_result = await _run_single_test(category)
 		
 		# Sonuçları kaydet
 		test_results[category] = test_result
@@ -135,7 +135,7 @@ func run_all_tests() -> void:
 	is_testing = false
 
 func run_specific_test(category: AudioTestMolecule.AudioTestCategory) -> TestBaseAtom.TestResult:
-	"""Belirli bir test kategorisini çalıştır"""
+	"""Belirli bir test kategorisini çalıştır (caller await etmeli)"""
 	if is_testing:
 		print("AudioTestOrganism: Cannot run specific test while testing suite")
 		return null
@@ -143,7 +143,7 @@ func run_specific_test(category: AudioTestMolecule.AudioTestCategory) -> TestBas
 	print("\n=== RUNNING SPECIFIC TEST: %s ===" % AudioTestMolecule.AudioTestCategory.keys()[category])
 	
 	is_testing = true
-	var test_result = _run_single_test(category)
+	var test_result = await _run_single_test(category)
 	is_testing = false
 	
 	return test_result
@@ -260,16 +260,16 @@ func _run_single_test(category: AudioTestMolecule.AudioTestCategory) -> TestBase
 			  AudioTestMolecule.AudioTestCategory.keys()[category])
 		return null
 	
-	# Testi çalıştır
-	var result = molecule.run_test()
+	# Testi çalıştır (run_test coroutine olduğu için await gerekli)
+	var result = await molecule.run_test()
 	
 	return result
 
 func _show_final_summary() -> void:
 	"""Final özeti göster"""
-	print("\n" + "="*50)
+	print("\n" + "=".repeat(50))
 	print("AUDIO TEST SUITE COMPLETED")
-	print("="*50)
+	print("=".repeat(50))
 	
 	var summary = get_test_summary()
 	
@@ -293,12 +293,12 @@ func _show_final_summary() -> void:
 		if result.error_message:
 			print("    Error: %s" % result.error_message)
 	
-	print("\n" + "="*50)
+	print("\n" + "=".repeat(50))
 	if summary.passed_tests == summary.total_tests:
 		print("🎉 ALL AUDIO TESTS PASSED!")
 	else:
 		print("⚠️  SOME AUDIO TESTS FAILED!")
-	print("="*50)
+	print("=".repeat(50))
 	
 	# Event emit
 	audio_test_suite_completed.emit(

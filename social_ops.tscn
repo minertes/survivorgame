@@ -1,0 +1,114 @@
+[gd_scene load_steps=2 format=3 uid="uid://social_ops_faz5"]
+
+[ext_resource type="Script" path="res://social_ops.gd" id="1_social"]
+
+[node name="SocialOps" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_social")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.05, 0.12, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackButton" type="Button" parent="Margin/VBox/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 48)
+text = "← Ana Menü"
+
+[node name="Title" type="Label" parent="Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Liderlik & Başarılar"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.95, 0.88, 0.5, 1)
+
+[node name="Spacer" type="Control" parent="Margin/VBox/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 48)
+
+[node name="Tabs" type="TabContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 400)
+
+[node name="Leaderboard" type="VBoxContainer" parent="Margin/VBox/Tabs"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PeriodDaily" type="Button" parent="Margin/VBox/Tabs/Leaderboard"]
+layout_mode = 2
+text = "Günlük"
+
+[node name="PeriodWeekly" type="Button" parent="Margin/VBox/Tabs/Leaderboard"]
+layout_mode = 2
+text = "Haftalık"
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox/Tabs/Leaderboard"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="List" type="ItemList" parent="Margin/VBox/Tabs/Leaderboard/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Achievements" type="VBoxContainer" parent="Margin/VBox/Tabs"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox/Tabs/Achievements"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="List" type="ItemList" parent="Margin/VBox/Tabs/Achievements/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Daily" type="VBoxContainer" parent="Margin/VBox/Tabs"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="StreakLabel" type="Label" parent="Margin/VBox/Tabs/Daily"]
+layout_mode = 2
+text = "Seri: 0 gün"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.9, 0.82, 0.55, 1)
+
+[node name="ClaimButton" type="Button" parent="Margin/VBox/Tabs/Daily"]
+layout_mode = 2
+text = "Bugünkü ödülü al"
+
+[node name="StatusLabel" type="Label" parent="Margin/VBox/Tabs/Daily"]
+layout_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.72, 0.82, 0.92, 1)

@@ -1,0 +1,15 @@
+---
+description: UI ve görsel değişikliklerde denetim süreci
+globs: ["**/*.tscn", "**/menu*.gd", "**/lobby*.gd", "**/shop*.gd", "**/ui/**", "**/scenes/**"]
+---
+
+# UI / Görsel Değişiklik Denetimi
+
+Bu projede **yeni ekran veya belirgin UI/UX değişikliği** yapıldığında:
+
+1. **Görsel tasarım checklist** doldurulmalı: `docs/GORSEL_TASARIM_CHECKLIST.md`
+2. **Frontend lead onayı** alınmalı (süreç: `docs/DENETIM_ONAY_SURECI.md`)
+
+UI değişikliği önerirken veya uygularken:
+- Renk, font, hizalama ve boşlukların tutarlı olduğundan emin ol
+- Mevcut ekranlar (menü, lobi, mağaza) için checklist maddelerini karşıladığını kontrol et

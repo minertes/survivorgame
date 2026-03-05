@@ -43,7 +43,7 @@ extends Control
 @onready var settings_button: ButtonAtom = $CenterContainer/VBoxContainer/ButtonContainer/SettingsButton
 @onready var quit_button: ButtonAtom = $CenterContainer/VBoxContainer/ButtonContainer/QuitButton
 @onready var version_label: LabelAtom = $BottomRight/VersionLabel
-@onready var fade_tween: Tween = $FadeTween
+var fade_tween: Tween
 
 # === STATE ===
 var is_initialized: bool = false
@@ -160,8 +160,8 @@ func set_title(text: String) -> void:
 		title_label.set_text(text)
 
 func set_logo(icon_path: String) -> void:
-	if logo_icon:
-		logo_icon.set_icon(icon_path)
+	if logo_icon and logo_icon.has_method("set_icon_from_path"):
+		logo_icon.set_icon_from_path(icon_path)
 
 func set_background_color(color: Color) -> void:
 	if background_panel:

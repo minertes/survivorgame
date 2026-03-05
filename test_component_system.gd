@@ -1,6 +1,6 @@
 # 🧪 TEST ORCHESTRATOR
 # Tüm test component'larını koordine eder
-class_name TestOrchestrator
+class_name TestComponentOrchestrator
 extends Node
 
 # === TEST COMPONENTS ===

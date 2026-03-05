@@ -4,7 +4,6 @@ class_name SaveIntegrationTests
 extends "res://src/core/systems/save_system/test/save_test_base.gd"
 
 # === IMPORTS ===
-const SaveManager = preload("res://src/core/systems/save_system/save_manager.gd")
 const SaveSlotComponent = preload("res://src/core/systems/save_system/save_slot_component.gd")
 
 # === LIFECYCLE ===
@@ -75,7 +74,7 @@ func _test_basic_save_load_cycle() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		test_game_state,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	
@@ -145,7 +144,7 @@ func _test_multiple_save_slots() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			slot_index,
 			game_state,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			float(slot_index) * 3600.0
 		) if save_component.has_method("create_save_data") else null
 		
@@ -239,7 +238,7 @@ func _test_auto_save_system() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		game_state,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	
@@ -350,7 +349,7 @@ func _test_scenario_game_progression() -> Dictionary:
 	var initial_save = save_component.create_save_data(
 		test_slot,
 		progression_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	
@@ -371,7 +370,7 @@ func _test_scenario_game_progression() -> Dictionary:
 	var progressed_save = save_component.create_save_data(
 		test_slot,
 		progression_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		3600.0  # 1 hour play time
 	) if save_component.has_method("create_save_data") else null
 	
@@ -432,7 +431,7 @@ func _test_scenario_inventory() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		inventory_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		1800.0  # 30 minutes
 	) if save_component.has_method("create_save_data") else null
 	
@@ -451,7 +450,7 @@ func _test_scenario_inventory() -> Dictionary:
 	var modified_save = save_component.create_save_data(
 		test_slot,
 		inventory_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		3600.0  # 1 hour
 	) if save_component.has_method("create_save_data") else null
 	
@@ -513,7 +512,7 @@ func _test_scenario_multiple_profiles() -> Dictionary:
 		var save_data = save_component.create_save_data(
 			profile.slot,
 			profile_data,
-			OS.get_datetime(),
+			Time.get_datetime_dict_from_system(),
 			0.0
 		) if save_component.has_method("create_save_data") else null
 		
@@ -611,7 +610,7 @@ func _test_scenario_settings() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		settings_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	
@@ -630,7 +629,7 @@ func _test_scenario_settings() -> Dictionary:
 	var modified_save = save_component.create_save_data(
 		test_slot,
 		settings_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	
@@ -685,7 +684,7 @@ func _test_scenario_error_recovery() -> Dictionary:
 	var save_data = save_component.create_save_data(
 		test_slot,
 		valid_data,
-		OS.get_datetime(),
+		Time.get_datetime_dict_from_system(),
 		0.0
 	) if save_component.has_method("create_save_data") else null
 	

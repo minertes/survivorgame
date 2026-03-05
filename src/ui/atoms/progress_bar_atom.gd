@@ -44,7 +44,7 @@ extends Control
 # === NODES ===
 @onready var progress_bar: ProgressBar = $ProgressBar
 @onready var value_label: Label = $ValueLabel
-@onready var update_tween: Tween = $UpdateTween
+var update_tween: Tween
 
 # === STATE ===
 var current_style: Dictionary = {}

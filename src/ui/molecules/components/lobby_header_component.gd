@@ -76,17 +76,28 @@ func set_back_button_visible(visible: bool) -> void:
 # === PRIVATE METHODS ===
 
 func _setup_ui() -> void:
-	# Header stili
-	var header_style = StyleBoxFlat.new()
-	header_style.bg_color = Color(0.06, 0.04, 0.12, 0.95)
-	header_style.border_color = Color(0.3, 0.2, 0.5, 0.8)
+	var header_style := StyleBoxFlat.new()
+	header_style.bg_color = Color(0.07, 0.06, 0.12, 0.98)
+	header_style.border_color = Color(0.28, 0.35, 0.25, 0.7)
 	header_style.set_border_width_all(0)
 	header_style.border_width_bottom = 2
 	add_theme_stylebox_override("panel", header_style)
-	
-	custom_minimum_size = Vector2(0, 60)
-	
-	print("🖥️ Header UI setup completed")
+	custom_minimum_size = Vector2(0, 52)
+	if back_button:
+		back_button.custom_minimum_size = Vector2(88, 40)
+		back_button.text = "◀ Geri"
+		back_button.add_theme_font_size_override("font_size", 16)
+		back_button.add_theme_color_override("font_color", Color(0.9, 0.88, 0.85))
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.14, 0.12, 0.18)
+		sb.set_corner_radius_all(6)
+		sb.border_color = Color(0.4, 0.45, 0.35, 0.8)
+		sb.set_border_width_all(1)
+		back_button.add_theme_stylebox_override("normal", sb)
+		var sbh := StyleBoxFlat.new()
+		sbh.bg_color = Color(0.2, 0.18, 0.26)
+		sbh.set_corner_radius_all(6)
+		back_button.add_theme_stylebox_override("hover", sbh)
 
 func _connect_signals() -> void:
 	if back_button:

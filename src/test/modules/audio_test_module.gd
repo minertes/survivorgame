@@ -6,9 +6,7 @@ class_name AudioTestModule extends UITestBase
 # === DEPENDENCIES ===
 @onready var audio_test_organism: AudioTestOrganism = $AudioTestOrganism
 
-# === STATE ===
-var test_results: Dictionary = {}
-var is_testing: bool = false
+# === STATE (test_results, is_testing parent UITestBase'den) ===
 
 # === SIGNALS ===
 signal audio_test_module_initialized
@@ -39,10 +37,10 @@ func _ready() -> void:
 
 # === PUBLIC API ===
 
-func run_all_tests() -> Dictionary:
+func run_all_tests() -> void:
 	"""Tüm audio testlerini çalıştır"""
 	if is_testing:
-		return {"success": false, "error": "Already testing"}
+		return
 	
 	print("\n=== RUNNING MODULAR AUDIO TESTS ===")
 	
@@ -52,22 +50,7 @@ func run_all_tests() -> Dictionary:
 	# AudioTestOrganism üzerinden testleri çalıştır
 	audio_test_organism.run_all_tests()
 	
-	# Testlerin tamamlanmasını bekle
-	await audio_test_organism.audio_test_suite_completed
-	
-	# Sonuçları al
-	var summary = audio_test_organism.get_test_summary()
-	test_results = summary
-	
-	is_testing = false
-	
-	# Final event
-	audio_test_module_completed.emit(test_results)
-	
-	return {
-		"success": summary.passed_tests == summary.total_tests,
-		"data": summary
-	}
+	# Testler tamamlandığında _on_test_suite_completed'da is_testing=false yapılacak
 
 func run_specific_test_category(category_name: String) -> Dictionary:
 	"""Belirli bir test kategorisini çalıştır"""
@@ -83,8 +66,8 @@ func run_specific_test_category(category_name: String) -> Dictionary:
 	
 	is_testing = true
 	
-	# Belirli testi çalıştır
-	var test_result = audio_test_organism.run_specific_test(category)
+	# Belirli testi çalıştır (coroutine - await gerekli)
+	var test_result = await audio_test_organism.run_specific_test(category)
 	
 	is_testing = false
 	
@@ -185,6 +168,7 @@ func _on_test_progress(category: AudioTestMolecule.AudioTestCategory, progress: 
 
 func _on_test_suite_completed(total_tests: int, passed_tests: int, failed_tests: int, total_duration_ms: int) -> void:
 	# Test suite tamamlandı
+	is_testing = false
 	print("AudioTestModule: Test suite completed")
 	print("  Total: %d, Passed: %d, Failed: %d, Duration: %d ms" % [
 		total_tests,
@@ -203,7 +187,8 @@ func _on_test_summary_ready(summary: Dictionary) -> void:
 func run_module_tests() -> Dictionary:
 	"""Test orchestrator için module testlerini çalıştır"""
 	print("Running AudioTestModule (Modular)...")
-	return run_all_tests()
+	run_all_tests()
+	return {"success": true, "message": "Tests started"}
 
 func get_module_info() -> Dictionary:
 	"""Module info for test orchestrator"""

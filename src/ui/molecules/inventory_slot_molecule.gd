@@ -175,7 +175,7 @@ func _load_config() -> void:
 			var parts = size_str.split(",")
 			if parts.size() == 2:
 				var icon_size = Vector2(float(parts[0]), float(parts[1]))
-				item_icon.set_size(icon_size)
+				item_icon.set_icon_size(icon_size)
 
 # === STATE MANAGEMENT ===
 

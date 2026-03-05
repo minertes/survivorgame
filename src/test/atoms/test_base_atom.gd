@@ -139,13 +139,11 @@ func run_test() -> TestResult:
 			test_progress.emit(0.5, "Retry attempt %d/%d" % [attempt + 1, retry_count + 1])
 			await get_tree().create_timer(0.5).timeout
 		
-		try:
-			success = _execute_test()
-			if success:
-				break
-		except:
-			error_msg = "Test threw an exception on attempt %d" % (attempt + 1)
-			test_error.emit(error_msg, 1000 + attempt)
+		success = await _execute_test()
+		if success:
+			break
+		error_msg = "Test failed on attempt %d" % (attempt + 1)
+		test_error.emit(error_msg, 1000 + attempt)
 	
 	# Test tamamlandı
 	end_time = Time.get_ticks_msec()

@@ -126,9 +126,10 @@ func play_music(music_name: String, fade_in: float = 0.0, loop: bool = true) -> 
 		audio_error.emit("Music player not available", 1007)
 		return false
 	
-	# Müzik ayarla
+	# Müzik ayarla (AudioStreamWAV'da loop yok; sadece Ogg'da var)
 	music_player.stream = stream
-	music_player.stream.loop = loop
+	if stream is AudioStreamOggVorbis:
+		stream.loop = loop
 	
 	# Fade efekti
 	if fade_in > 0:

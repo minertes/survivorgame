@@ -1,5 +1,6 @@
 # 🏢 LOBBY CONTENT MANAGER
-# Lobi içerik yöneticisi (tip bağımlılıkları kaldırıldı — parse hatası önlemi)
+# Lobi içerik yöneticisi
+class_name LobbyContentManager
 extends Control
 
 # === DEPENDENCIES ===
@@ -37,17 +38,20 @@ func set_tab_navigation(navigation) -> void:
 		tab_navigation.tab_changed.connect(_on_tab_changed)
 		if not tab_navigation.get_parent():
 			add_child(tab_navigation)
-			# Tab çubuğu üstte sabit yükseklikte; içerik alanı hemen altında başlasın
-			tab_navigation.set_anchors_preset(Control.PRESET_TOP_WIDE)
-			tab_navigation.offset_top = 0
-			tab_navigation.offset_bottom = 56
-			tab_navigation.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-			# İçerik alanı: geniş padding, rahat görünüm
-			content_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-			content_container.offset_top = 62
-			content_container.offset_bottom = -12
-			content_container.offset_left = 20
-			content_container.offset_right = -20
+			# Tab bar üstte görünsün — ilk sıraya taşı
+			move_child(tab_navigation, 0)
+		tab_navigation.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		tab_navigation.offset_left = 0
+		tab_navigation.offset_top = 0
+		tab_navigation.offset_right = 0
+		tab_navigation.offset_bottom = 51
+		tab_navigation.custom_minimum_size = Vector2(0, 51)
+		tab_navigation.visible = true
+		content_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+		content_container.offset_top = 56
+		content_container.offset_bottom = -(_PLAY_BTN_H + _CONTENT_PADDING * 2)
+		content_container.offset_left = _CONTENT_PADDING
+		content_container.offset_right = -_CONTENT_PADDING
 		component_loaded.emit("tab_navigation", true)
 		_show_tab_content(current_tab)
 
@@ -97,8 +101,12 @@ func set_play_button_visible(visible: bool) -> void:
 
 # === PRIVATE METHODS ===
 
+# Tasarım sabitleri (720x1280) — buton ekran içinde kalsın
+const _PLAY_BTN_W := 280
+const _PLAY_BTN_H := 52
+const _CONTENT_PADDING := 16
+
 func _setup_ui() -> void:
-	# Sahneden gelen ContentContainer ve PlayButton varsa kullan; yoksa oluştur
 	if not content_container:
 		content_container = Control.new()
 		content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -107,27 +115,39 @@ func _setup_ui() -> void:
 		add_child(content_container)
 	if not play_button:
 		play_button = Button.new()
-		play_button.text = "🎮 OYUNA BAŞLA"
-		play_button.custom_minimum_size = Vector2(0, 70)
-		play_button.add_theme_font_size_override("font_size", 24)
-		play_button.add_theme_color_override("font_color", Color(0.95, 1.0, 0.95))
 		play_button.name = "PlayButton"
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0.12, 0.5, 0.12)
-		style.set_corner_radius_all(10)
-		style.border_color = Color(0.4, 0.9, 0.4, 0.8)
-		style.set_border_width_all(2)
-		play_button.add_theme_stylebox_override("normal", style)
-		var hover_style = StyleBoxFlat.new()
-		hover_style.bg_color = Color(0.18, 0.7, 0.18)
-		hover_style.set_corner_radius_all(10)
-		play_button.add_theme_stylebox_override("hover", hover_style)
-		play_button.pressed.connect(_on_play_button_pressed)
-		play_button.size_flags_vertical = Control.SIZE_SHRINK_END
 		add_child(play_button)
+	# Stil ve boyut hem sahne hem kodla oluşturulanda aynı olsun
+	_apply_play_button_style()
+	if not play_button.pressed.is_connected(_on_play_button_pressed):
+		play_button.pressed.connect(_on_play_button_pressed)
+
+func _apply_play_button_style() -> void:
+	if not play_button:
+		return
+	play_button.text = "▶ OYUNA BAŞLA"
+	play_button.custom_minimum_size = Vector2(_PLAY_BTN_W, _PLAY_BTN_H)
+	play_button.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	play_button.offset_left = -int(_PLAY_BTN_W / 2)
+	play_button.offset_top = -_PLAY_BTN_H - _CONTENT_PADDING
+	play_button.offset_right = int(_PLAY_BTN_W / 2)
+	play_button.offset_bottom = -_CONTENT_PADDING
+	play_button.add_theme_font_size_override("font_size", 22)
+	play_button.add_theme_color_override("font_color", Color(0.98, 1.0, 0.98))
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.42, 0.14)
+	style.set_corner_radius_all(12)
+	style.border_color = Color(0.28, 0.75, 0.32, 0.9)
+	style.set_border_width_all(2)
+	play_button.add_theme_stylebox_override("normal", style)
+	var hover_style := StyleBoxFlat.new()
+	hover_style.bg_color = Color(0.18, 0.55, 0.22)
+	hover_style.set_corner_radius_all(12)
+	hover_style.border_color = Color(0.4, 0.9, 0.45, 1.0)
+	hover_style.set_border_width_all(2)
+	play_button.add_theme_stylebox_override("hover", hover_style)
 
 func _initialize_components() -> void:
-	# Bileşenler dışarıdan set edilecek
 	pass
 
 func _show_tab_content(tab_index: int) -> void:
@@ -158,7 +178,22 @@ func _show_tab_content(tab_index: int) -> void:
 	if node_to_show:
 		if node_to_show.get_parent():
 			node_to_show.get_parent().remove_child(node_to_show)
-		content_container.add_child(node_to_show)
+		# ScrollContainer ile sar — uzun listeler kaydırılabilir olsun
+		var scroll := ScrollContainer.new()
+		scroll.name = "TabScroll"
+		scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+		scroll.offset_left = 0
+		scroll.offset_top = 0
+		scroll.offset_right = 0
+		scroll.offset_bottom = 0
+		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		scroll.custom_minimum_size = Vector2(0, 200)
+		content_container.add_child(scroll)
+		scroll.add_child(node_to_show)
+		node_to_show.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		node_to_show.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		node_to_show.custom_minimum_size = Vector2(0, 400)
 	else:
 		match tab_index:
 			0: _show_placeholder("👤 Karakter seçimi yüklenemedi")

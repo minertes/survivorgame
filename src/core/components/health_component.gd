@@ -18,8 +18,8 @@ var regeneration_interval: float = 1.0
 # === SIGNALS ===
 signal health_changed(old_value: float, new_value: float)
 signal health_healed(amount: float)
-signal health_damaged(amount: float, source: Node = null)
-signal died(killer: Node = null)
+signal health_damaged(amount: float, source: Node)
+signal died(killer: Node)
 signal invincibility_started(duration: float)
 signal invincibility_ended()
 

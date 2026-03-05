@@ -1,6 +1,6 @@
 # 👾 ENEMY ENTITY ORCHESTRATOR
 # Düşman entity'si - Atomic component'ları koordine eder
-class_name EnemyEntity
+class_name EnemyEntityOrchestrator
 extends Entity
 
 # === COMPONENT REFERENCES ===
@@ -14,7 +14,7 @@ var drop_component: DropComponent = null
 signal enemy_spotted_target(target: Node2D)
 signal enemy_lost_target()
 signal enemy_attacked(target: Node2D)
-signal enemy_killed(killer: Node = null)
+signal enemy_killed(killer: Node)
 signal enemy_despawned()
 
 # === LIFECYCLE ===

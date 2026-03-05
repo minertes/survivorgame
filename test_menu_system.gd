@@ -21,7 +21,7 @@ var tests_failed = 0
 
 func _ready() -> void:
 	print("🧪 Starting Menu System Tests...")
-	print("=" * 50)
+	print("=".repeat(50))
 	
 	# Testleri çalıştır
 	_run_tests()
@@ -168,11 +168,11 @@ func test_scene_transitions() -> bool:
 
 func _run_tests() -> void:
 	print("Running %d tests..." % test_cases.size())
-	print("=" * 50)
+	print("=".repeat(50))
 	
 	for i in range(test_cases.size()):
 		print("\nTest %d: %s" % [i + 1, test_cases[i]])
-		print("-" * 30)
+		print("-".repeat(30))
 		
 		var test_passed = false
 		match i:
@@ -193,13 +193,14 @@ func _run_tests() -> void:
 	_print_test_summary()
 
 func _print_test_summary() -> void:
-	print("\n" + "=" * 50)
+	print("\n" + "=".repeat(50))
 	print("TEST SUMMARY")
-	print("=" * 50)
+	print("=".repeat(50))
 	print("Total Tests: %d" % test_cases.size())
 	print("Tests Passed: %d" % tests_passed)
 	print("Tests Failed: %d" % tests_failed)
-	print("Success Rate: %.1f%%" % (float(tests_passed) / test_cases.size() * 100))
+	var rate = (float(tests_passed) / test_cases.size() * 100) if test_cases.size() > 0 else 0.0
+	print("Success Rate: %.1f%%" % [rate])
 	
 	if tests_failed == 0:
 		print("\n🎉 ALL TESTS PASSED! Menu system is ready.")
@@ -211,7 +212,7 @@ func _print_test_summary() -> void:
 func _input(event: InputEvent) -> void:
 	# R ile testleri yeniden çalıştır
 	if event.is_action_pressed("ui_accept"):
-		print("\n" + "=" * 50)
+		print("\n" + "=".repeat(50))
 		print("Restarting tests...")
 		current_test = 0
 		tests_passed = 0
