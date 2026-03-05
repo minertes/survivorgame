@@ -29,15 +29,27 @@ var weapon_stats: Dictionary = {
 	"total_damage": 0
 }
 
+# Backend / GameData ek istatistikler
+var economy_stats: Dictionary = {
+	"xp_coins": 0,
+	"gems": 0,
+	"prestige_level": 0,
+	"battle_pass_level": 0,
+	"login_streak": 0,
+	"achievement_count": 0
+}
+
 # === UI REFERENCES ===
 var _stats_container: VBoxContainer
 var _character_stats_panel: Control
 var _weapon_stats_panel: Control
+var _economy_stats_panel: Control
 
 # === LIFECYCLE ===
 
 func _ready() -> void:
 	_build_ui()
+	_load_from_gamedata()
 	_refresh_display()
 
 # === PUBLIC API ===
@@ -76,23 +88,24 @@ func get_all_stats() -> Dictionary:
 		"weapon": weapon_stats.duplicate()
 	}
 
+## Tab görünür olduğunda GameData'dan yeniden yükle (oyundan dönünce güncel olsun)
+func refresh() -> void:
+	_load_from_gamedata()
+	_refresh_display()
+
 # === PRIVATE METHODS ===
 
 func _build_ui() -> void:
-	# Ana container
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(scroll)
-	
+	# Lobby zaten ScrollContainer ile sarıyor; iç içe scroll layout bozuyor
 	var margin = MarginContainer.new()
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.custom_minimum_size = Vector2(0, 500)
 	margin.add_theme_constant_override("margin_left", 20)
 	margin.add_theme_constant_override("margin_right", 20)
 	margin.add_theme_constant_override("margin_top", 16)
 	margin.add_theme_constant_override("margin_bottom", 20)
-	scroll.add_child(margin)
+	add_child(margin)
 	
 	_stats_container = VBoxContainer.new()
 	_stats_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -126,6 +139,10 @@ func _build_ui() -> void:
 	# Genel istatistikler paneli
 	var general_stats_panel = _create_stats_panel("🎮 Genel oyun")
 	_stats_container.add_child(general_stats_panel)
+	
+	# Para & İlerleme paneli (backend: xp, gems, prestige, battle pass, streak, achievements)
+	_economy_stats_panel = _create_stats_panel("💰 Para & İlerleme")
+	_stats_container.add_child(_economy_stats_panel)
 
 func _create_stats_panel(title: String) -> Control:
 	var panel = PanelContainer.new()
@@ -169,19 +186,53 @@ func _create_stats_panel(title: String) -> Control:
 	
 	return panel
 
+func _load_from_gamedata() -> void:
+	if not is_inside_tree():
+		return
+	var gd = get_node_or_null("/root/GameData")
+	if not gd:
+		return
+	# Genel oyun istatistikleri (backend ile senkron)
+	player_stats["best_wave"] = gd.best_wave
+	player_stats["total_kills"] = gd.total_kills
+	player_stats["total_games"] = gd.total_games
+	player_stats["total_xp_earned"] = gd.total_xp_earned
+	player_stats["total_play_time"] = gd.total_play_time
+	player_stats["accuracy"] = gd.accuracy
+	player_stats["survival_rate"] = gd.survival_rate
+	# Karakter
+	var char_id: String = gd.selected_character
+	var char_data = gd.CHARACTERS.get(char_id, {})
+	character_stats["selected_character"] = char_data.get("name", char_id)
+	character_stats["character_level"] = gd.character_levels.get(char_id, 1)
+	character_stats["character_xp"] = 0  # GameData'da yok
+	# Silah
+	var weap_id: String = gd.equipped_weapon
+	var weap_data = gd.WEAPONS.get(weap_id, {})
+	weapon_stats["selected_weapon"] = weap_data.get("name", weap_id)
+	weapon_stats["weapon_level"] = gd.owned_weapons.get(weap_id, 1)
+	var mults = weap_data.get("upgrade_multipliers", [1.0])
+	var base_dmg = weap_data.get("base_damage", 0)
+	var lv = weapon_stats["weapon_level"]
+	weapon_stats["total_damage"] = int(base_dmg * mults[min(lv - 1, mults.size() - 1)])
+	# Para & İlerleme
+	economy_stats["xp_coins"] = gd.xp_coins
+	economy_stats["gems"] = gd.gems
+	economy_stats["prestige_level"] = gd.prestige_level
+	economy_stats["battle_pass_level"] = gd.battle_pass_level
+	economy_stats["login_streak"] = gd.login_streak
+	economy_stats["achievement_count"] = gd.achievement_unlocked.size()
+
 func _refresh_display() -> void:
 	if _stats_container == null:
 		return
-	# Karakter istatistiklerini güncelle
 	_update_stats_panel(_character_stats_panel, _get_character_stats_data())
-	
-	# Silah istatistiklerini güncelle
 	_update_stats_panel(_weapon_stats_panel, _get_weapon_stats_data())
-	
-	# Genel istatistikleri güncelle (5. panel: 0 title, 1 subtitle, 2 char, 3 weapon, 4 general)
 	var general_panel = _stats_container.get_child(4) if _stats_container.get_child_count() > 4 else null
 	if general_panel and general_panel is PanelContainer:
 		_update_stats_panel(general_panel, _get_general_stats_data())
+	if _economy_stats_panel:
+		_update_stats_panel(_economy_stats_panel, _get_economy_stats_data())
 
 func _update_stats_panel(panel: Control, stats_data: Array) -> void:
 	if panel == null:
@@ -238,9 +289,10 @@ func _get_weapon_stats_data() -> Array:
 	]
 
 func _get_general_stats_data() -> Array:
-	var play_time_minutes = player_stats.get("total_play_time", 0) / 60
-	var hours = int(play_time_minutes / 60)
-	var minutes = int(play_time_minutes) % 60
+	var play_time_sec = player_stats.get("total_play_time", 0)
+	var total_min = int(play_time_sec / 60)
+	var hours = int(total_min / 60)
+	var minutes = total_min % 60
 	
 	return [
 		{"name": "Toplam Öldürme", "value": player_stats.get("total_kills", 0), "color": Color(1.0, 0.6, 0.6)},
@@ -248,6 +300,16 @@ func _get_general_stats_data() -> Array:
 		{"name": "Toplam Oyun Süresi", "value": "%d:%02d" % [hours, minutes], "color": Color(0.6, 0.8, 1.0)},
 		{"name": "Ortalama Dalga", "value": "%.1f" % (float(player_stats.get("best_wave", 0)) / max(1, player_stats.get("total_games", 1))), "color": Color(0.8, 0.6, 1.0)},
 		{"name": "Ortalama Öldürme/Oyun", "value": "%.1f" % (float(player_stats.get("total_kills", 0)) / max(1, player_stats.get("total_games", 1))), "color": Color(0.7, 0.9, 0.7)}
+	]
+
+func _get_economy_stats_data() -> Array:
+	return [
+		{"name": "XP (Para)", "value": economy_stats.get("xp_coins", 0), "color": Color(1.0, 0.9, 0.3)},
+		{"name": "Gems", "value": economy_stats.get("gems", 0), "color": Color(0.6, 0.8, 1.0)},
+		{"name": "Prestij Seviyesi", "value": economy_stats.get("prestige_level", 0), "color": Color(0.9, 0.7, 1.0)},
+		{"name": "Battle Pass", "value": "LV %d" % economy_stats.get("battle_pass_level", 0), "color": Color(0.8, 0.6, 1.0)},
+		{"name": "Giriş Serisi", "value": economy_stats.get("login_streak", 0), "color": Color(0.3, 1.0, 0.5)},
+		{"name": "Açılan Başarılar", "value": economy_stats.get("achievement_count", 0), "color": Color(1.0, 0.8, 0.4)}
 	]
 
 func _create_stat_row(stat_name: String, stat_value, color: Color = Color(0.9, 0.9, 0.9)) -> Control:

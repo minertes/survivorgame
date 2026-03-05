@@ -194,6 +194,9 @@ func _show_tab_content(tab_index: int) -> void:
 		node_to_show.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		node_to_show.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		node_to_show.custom_minimum_size = Vector2(0, 400)
+		# İstatistik/Ayarlar: node artık sahnede, GameData'dan yenile
+		if (tab_index == 3 or tab_index == 4) and node_to_show.has_method("refresh"):
+			node_to_show.refresh()
 	else:
 		match tab_index:
 			0: _show_placeholder("👤 Karakter seçimi yüklenemedi")
